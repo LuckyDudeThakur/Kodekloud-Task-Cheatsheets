@@ -1,0 +1,2524 @@
+Task 1 : 27/Dec/2021
+Linux TimeZones Setting :
+	
+	sudo timedatectl set-timezone <timezone>
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 2 : 28/Dec/2021
+Linux File Permissions :
+	
+	sudo chmod 755 <filename>
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 3 : 29/Dec/2021
+Create a Linux User with non-interactive shell:
+	
+	sudo useradd <username> -s /sbin/nologin
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 4 : 30/Dec/2021
+Linux Run Levels :
+
+	sudo systemctl get-default
+	sudo systemctl list-units --type=target --all
+	sudo systemctl set-default graphical.target
+	sudo systemctl get-default
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 5 : 31/Dec/2021
+Linux Postfix Troubleshooting:
+
+	ssh groot@stmail01
+	sudo systemctl status postfix.service -l
+	
+	<Error : Dec 31 15:14:56 stmail01.stratos.xfusioncorp.com postfix[571]: fatal: parameter inet_interfaces: no local interface found for ::1>
+	<Change inet_interfaces in /etc/postfix/main.cf>
+
+	sudo vi /etc/postfix/main.cf
+	<comment the line inet_interfaces=localhost>
+	#inet_interfaces = localhost
+
+	cat /etc/postfix/main.cf |grep inet
+
+	sudo systemctl restart postfix.service
+	sudo systemctl status postfix.service
+	telnet stmail01 25
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 6 : 1/Jan/2022 : Failed <Wrong Answer >
+Linux String Substitute (sed)
+
+	sed -e '/software/d' /home/BSD.txt > /home/BSD_DELETE.txt
+
+	sed -e 's/or/for/g' /home/BSD.txt > /home/BSD_REPLACE.txt <Wrong Answer>
+
+	sed -e 's/\bor\b/for/g' /home/BSD.txt > /home/BSD_REPLACE.txt <Possible Right Answer><Set Word Boundaries>
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 7 : 2/Jan/2022 
+Linux Banner
+
+For Application Servers :
+	
+	[jump server] thor@jump_host$ scp -r /home/thornautilus_banner tony@stapp01:/tmp
+				  ssh tony@stapp01
+				  cd /tmp
+				  ls -ahl nautilus_banner
+				  sudo mv nautillus_banner /etc/motd
+				  cat /etc/motd
+				  exit
+				  ssh tony@stapp01	
+
+
+For DB Server
+
+	[jump server] thor@jump_host$ scp -r nautilus_banner peter@stdb01:/tmp
+								  scp command not found	
+				  ssh peter@stdb01
+				  sudo yum install openssh-clients -y
+				  exit
+	[jump server] thor@jump_host$ scp -r nautilus_banner peter@stdb01:/tmp
+				  ssh peter@stdb01	
+				  cd /tmp
+				  ls -ahl nautilus_banner
+				  sudo mv nautillus_banner /etc/motd
+				  cat /etc/motd
+				  exit
+				  ssh peter@stdb01
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 8 : 4 /Jan/2021
+Linux User Expiry
+
+	ssh tony@stapp01
+	sudo chage -l kareem
+	sudo useradd kareem
+	sudo chage -E 2021-04-15 kareem
+	sudo chage -l kareem
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 9 : 5/Jan/2022
+Linux Remote Copy
+
+	[jump server] thor@jump_host$ cd /tmp
+	[jump server] thor@jump_host$ ls -ahl
+	[jump server] thor@jump_host$ scp -r nautilus.txt.gpg steve@stapp02:/home/webapp
+								  ssh steve@stapp02
+								  cd /home/webapp
+								  ls -ahl		
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 10: 6/Jan/2022
+Linux Services
+
+	ssh tony@stapp01
+	sudo yum install -y nscd
+	sudo systemctl status nscd
+	sudo systemctl enable nscd
+	sudo systemctl start nscd
+	sudo systemctl status nscd
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 11 : 8/Jan/2022
+Linux Collaborative Directories
+
+	ssh banner@stapp03
+	sudo mkdir -p /dbadmin/data
+	ls -ahl
+	sudo chown -R root:dbadmin /dbadmin/data
+	ls -ahl
+	sudo chmod -R 2770 /dbadmin/data
+	ls -ahl
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 12 : 9/Jan/2022
+ Linux SSH Authentication
+
+The system admins team of xFusionCorp Industries has set up some scripts on jump host that run on regular intervals and perform operations on all app servers in Stratos Datacenter. To make these scripts work properly we need to make sure the thor user on jump host has password-less SSH access to all app servers through their respective sudo users (i.e tony for app server 1). Based on the requirements, perform the following:
+
+Set up a password-less authentication from user thor on jump host to all app servers through their respective sudo users.
+
+		
+		thor@jump_host ~$ whoami
+				thor
+		
+		thor@jump_host ~$ pwd
+				/home/thor
+		  
+		thor@jump_host ~$ ssh-keygen -t rsa
+				Generating public/private rsa key pair.
+				Enter file in which to save the key (/home/thor/.ssh/id_rsa): 
+				Enter passphrase (empty for no passphrase): 
+				Enter same passphrase again: 
+				Your identification has been saved in /home/thor/.ssh/id_rsa.
+				Your public key has been saved in /home/thor/.ssh/id_rsa.pub.
+				The key fingerprint is:
+				SHA256:9pITPWNRkGl0+WcN51jIU0t+uZ7oMfHpx2XHAbR+VDQ thor@jump_host.stratos.xfusioncorp.com
+				The key's randomart image is:
+				+---[RSA 2048]----+
+				|         .o+++ E+|
+				|          +o..O B|
+				|         ..  o.%o|
+				|         . .. +.B|
+				|        S =  o *.|
+				|       . = o  * B|
+				|        + .  + Bo|
+				|         o  . + o|
+				|             . ..|
+				+----[SHA256]-----+
+		
+
+		thor@jump_host ~$ ssh-copy-id tony@stapp01
+				/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/home/thor/.ssh/id_rsa.pub"
+				The authenticity of host 'stapp01 (172.16.238.10)' can't be established.
+				ECDSA key fingerprint is SHA256:Fyn/TgfF2RmCbf4pEiPUgikWi31NZakcgwHoiGyecnA.
+				ECDSA key fingerprint is MD5:28:84:b8:ab:8a:09:e8:fb:60:2b:74:c3:02:c8:41:fc.
+				Are you sure you want to continue connecting (yes/no)? yes
+				/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+				/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+				tony@stapp01's password: 
+
+				Number of key(s) added: 1
+
+				Now try logging into the machine, with:   "ssh 'tony@stapp01'"
+				and check to make sure that only the key(s) you wanted were added.
+
+		thor@jump_host ~$ ssh tony@stapp01
+				[tony@stapp01 ~]$ 
+				[tony@stapp01 ~]$ 
+				[tony@stapp01 ~]$ exit
+				logout
+				Connection to stapp01 closed.
+		
+		thor@jump_host ~$ ssh-copy-id steve@stapp02
+				/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/home/thor/.ssh/id_rsa.pub"
+				The authenticity of host 'stapp02 (172.16.238.11)' can't be established.
+				ECDSA key fingerprint is SHA256:9T2mbngN2wQib3n0DphD8fyv7kY+CPcni8A1qHXbfzo.
+				ECDSA key fingerprint is MD5:94:dd:44:9b:5d:0b:06:72:12:26:e6:93:ad:fd:86:60.
+				Are you sure you want to continue connecting (yes/no)? yes
+				/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+				/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+				steve@stapp02's password: 
+
+				Number of key(s) added: 1
+
+				Now try logging into the machine, with:   "ssh 'steve@stapp02'"
+				and check to make sure that only the key(s) you wanted were added.
+		
+		thor@jump_host ~$ ssh steve@stapp02
+				[steve@stapp02 ~]$ 
+				[steve@stapp02 ~]$ 
+				[steve@stapp02 ~]$ exit
+				logout
+				Connection to stapp02 closed.
+				thor@jump_host ~$ 
+		 
+		thor@jump_host ~$ ssh-copy-id banner@stapp03
+				/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/home/thor/.ssh/id_rsa.pub"
+				The authenticity of host 'stapp03 (172.16.238.12)' can't be established.
+				ECDSA key fingerprint is SHA256:IgPqsR2FIyZ4mx1joA2B31QtOn+Vu7IlP/XbTorcM3Q.
+				ECDSA key fingerprint is MD5:dc:76:5c:62:3c:0c:28:bf:94:ba:cc:cb:82:bf:e7:2f.
+				Are you sure you want to continue connecting (yes/no)? yes
+				/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+				/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+				banner@stapp03's password: 
+
+				Number of key(s) added: 1
+
+				Now try logging into the machine, with:   "ssh 'banner@stapp03'"
+				and check to make sure that only the key(s) you wanted were added.
+
+		thor@jump_host ~$ ssh banner@stapp03
+				[banner@stapp03 ~]$ 
+				[banner@stapp03 ~]$ 
+				[banner@stapp03 ~]$ exit
+				logout
+				Connection to stapp03 closed.
+				thor@jump_host ~$ 
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 13 : 10/Jan/2022
+ Linux String Substitute
+
+The backup server in the Stratos DC contains several template XML files used by the Nautilus application. However, these template XML files must be populated with valid data before they can be used. One of the daily tasks of a system admin working in the xFusionCorp industries is to apply string and file manipulation commands!
+
+Replace all occurances of the string Sample to Echo-Location on the XML file /root/nautilus.xml located in the backup server.
+
+
+		ssh clint@stbkp01
+
+		sudo su -
+
+		cd /root
+
+		cat nautilus.xml |grep 'Sample'|wc -l
+
+		sed -i 's/\bSample\b/Echo-Location/g' nautilus.xml
+
+		cat nautilus.xml |grep 'Sample'|wc -l
+
+		cat nautilus.xml |grep 'Echo-Location'|wc -l
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 14 : 11/Jan/2022
+ Create a Cron Job
+
+The Nautilus system admins team has prepared scripts to automate several day-to-day tasks. They want them to be deployed on all app servers in Stratos DC on a set schedule. Before that they need to test similar functionality with a sample cron job. Therefore, perform the steps below:
+
+a. Install cronie package on all Nautilus app servers and start crond service.
+
+b. Add a cron */5 * * * * echo hello > /tmp/cron_text for root user.
+
+		ssh tony@stapp01
+
+		$ sudo su -
+
+		# yum install cronie -y
+
+		# systemctl start crond.service
+
+		# systemctl status crond.service
+
+		# systemctl enable crond.service
+
+		# crontab -e
+			
+			*/5 * * * * echo hello > /tmp/cron_text
+
+		#crontab -l
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 15 : 13 / Jan /2022
+Linux User Files
+
+Copy user files (not directories) for user ravi from /home/userdata to /ecommerce with directory structure in place
+
+		ssh tony@stapp01
+
+		$ sudo su -
+
+		# cd /home/userdata
+
+		# find /home/usersdata/ -type f -user ravi|wc -l
+
+		# find /home/usersdata/ -type f -user ravi -exec cp --parents {} /ecommerce \;
+
+		# cd /ecommerce
+
+		# ls -ahl
+
+		# cd /ecommerce/home/userdata
+
+		# ls -ahl
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 16 : 14/Jan/2022
+Disable Root Login
+
+After doing some security audits of servers, xFusionCorp Industries security team has implemented some new security policies. One of them is to disable direct root login through SSH.
+
+Disable direct SSH root login on all app servers in Stratos Datacenter.
+
+		ssh tony@stapp01
+
+		# sudo su -
+
+		# systemctl status sshd.service
+
+		# vi /etc/ssh/sshd_config
+				PermitRootLogin no
+
+		# cat /etc/ssh/sshd_config|grep Permit
+
+		# systemctl restart sshd.service
+
+		# systemctl status sshd.service 
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 17 : 16/Jan/2022
+Selinux Installation
+
+The xFusionCorp Industries security team recently did a security audit of their infrastructure and came up with ideas to improve the application and server security. They decided to use SElinux for an additional security layer. They are still planning how they will implement it; however, they have decided to start testing with app servers, so based on the recommendations they have the following requirements:
+
+Install the required packages of SElinux on App server 3 in Stratos Datacenter and disable it permanently for now; it will be enabled after making some required configuration changes on this host. Don't worry about rebooting the server as there is already a reboot scheduled for tonight's maintenance window. Also ignore the status of SElinux command line right now; the final status after reboot should be disabled.
+
+		ssh banner@stapp03
+
+		# sudo su -
+
+		# yum install -y selinux*
+
+		## sestatus
+		SELinux status:                 disabled
+		
+		#cat /etc/selinux/config 
+		
+		#vi /etc/selinux/config
+		 		SELINUX=disabled
+		
+		#cat /etc/selinux/config  		
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 18 : 17/Jan/2022
+ DNS Troubleshooting
+
+ The system admins team of xFusionCorp Industries has noticed intermittent issues with DNS resolution in several apps . App Server 2 in Stratos Datacenter is having some DNS resolution issues, so we want to add some additional DNS nameservers on this server.
+
+As a temporary fix we have decided to go with Google public DNS (ipv4). Please make appropriate changes on this server.
+
+
+		ssh steve@stapp02
+
+		sudo vi /etc/resolv.conf
+			nameserver 8.8.8.8
+			nameserver 8.8.4.4
+
+		cat /etc/resolv.conf 
+			search stratos.xfusioncorp.com
+			nameserver 8.8.8.8
+			nameserver 8.8.4.4
+			nameserver 127.0.0.11
+			options ndots:0
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 19 : 18/Jan/2022
+ Linux User Without Home
+
+The system admins team of xFusionCorp Industries has set up a new tool on all app servers, as they have a requirement to create a service user account that will be used by that tool. They are finished with all apps except for App Server 3 in Stratos Datacenter.
+
+Create a user named yousuf in App Server 3 without a home directory.
+
+		ssh banner@stapp03
+
+		sudo su -
+
+		#id yousuf
+
+		#useradd -M yousuf
+
+		#cat /etc/passwd|grep yousuf
+			yousuf:x:1002:1002::/home/yousuf:/bin/bash
+		
+		#id yousuf
+		uid=1002(yousuf) gid=1002(yousuf) groups=1002(yousuf)
+		
+		# cat /etc/passwd|grep yousuf
+			yousuf:x:1002:1002::/home/yousuf:/bin/bash
+		
+		# ls /home/yousuf
+			ls: cannot access /home/yousuf: No such file or directory
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 20 : 20/Jan/2022
+Linux NTP Setup
+The system admin team of xFusionCorp Industries has noticed an issue with some servers in Stratos Datacenter where some of the servers are not in sync w.r.t time. Because of this, several application functionalities have been impacted. To fix this issue the team has started using common/standard NTP servers. They are finished with most of the servers except App Server 3. Therefore, perform the following tasks on this server:
+
+    Install and configure NTP server on App Server 3.
+
+    Add NTP server 1.south-america.pool.ntp.org in NTP configuration on App Server 3.
+
+    Please do not try to start/restart/stop ntp service, as we already have a restart for this service scheduled for tonight and we don't want these changes to be applied right now.
+
+		ssh banner@stapp03
+
+		sudo yum install -y ntp*
+
+		sudo vi /etc/ntp.conf
+				server 1.south-america.pool.ntp.org iburst
+		
+		cat /etc/ntp.conf|grep iburst
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 21 : 21/Jan/2022
+ MariaDB Troubleshooting
+There is a critical issue going on with the Nautilus application in Stratos DC. The production support team identified that the application is unable to connect to the database. After digging into the issue, the team found that mariadb service is down on the database server.
+
+Look into the issue and fix the same.
+
+		ssh peter@stdb01
+		
+		systemctl status mariadb.service
+				● mariadb.service - MariaDB database server
+				   Loaded: loaded (/usr/lib/systemd/system/mariadb.service; disabled; vendor preset: disabled)
+				   Active: inactive (dead)
+
+		sudo systemctl start mariadb.service
+
+				We trust you have received the usual lecture from the local System
+				Administrator. It usually boils down to these three things:
+
+				    #1) Respect the privacy of others.
+				    #2) Think before you type.
+				    #3) With great power comes great responsibility.
+
+				[sudo] password for peter: 
+				Job for mariadb.service failed because the control process exited with error code. See "systemctl status mariadb.service" and "journalctl -xe" for details.
+
+		sudo systemctl status mariadb.service -l
+				● mariadb.service - MariaDB database server
+				   Loaded: loaded (/usr/lib/systemd/system/mariadb.service; disabled; vendor preset: disabled)
+				   Active: failed (Result: exit-code) since Fri 2022-01-21 08:34:50 UTC; 47s ago
+				  Process: 560 ExecStartPre=/usr/libexec/mariadb-prepare-db-dir %n (code=exited, status=1/FAILURE)
+
+				Jan 21 08:34:50 stdb01.stratos.xfusioncorp.com mariadb-prepare-db-dir[560]: Database MariaDB is not initialized, but the directory /var/lib/mysql is not empty, so initialization cannot be done.
+				Jan 21 08:34:50 stdb01.stratos.xfusioncorp.com systemd[1]: Child 560 belongs to mariadb.service
+				Jan 21 08:34:50 stdb01.stratos.xfusioncorp.com systemd[1]: mariadb.service: control process exited, code=exited status=1
+				Jan 21 08:34:50 stdb01.stratos.xfusioncorp.com systemd[1]: mariadb.service got final SIGCHLD for state start-pre
+				Jan 21 08:34:50 stdb01.stratos.xfusioncorp.com systemd[1]: mariadb.service changed start-pre -> failed
+				Jan 21 08:34:50 stdb01.stratos.xfusioncorp.com systemd[1]: Job mariadb.service/start finished, result=failed
+				Jan 21 08:34:50 stdb01.stratos.xfusioncorp.com systemd[1]: Failed to start MariaDB database server.
+				Jan 21 08:34:50 stdb01.stratos.xfusioncorp.com systemd[1]: Unit mariadb.service entered failed state.
+				Jan 21 08:34:50 stdb01.stratos.xfusioncorp.com systemd[1]: mariadb.service failed.
+				Jan 21 08:34:50 stdb01.stratos.xfusioncorp.com systemd[1]: mariadb.service: cgroup is empty
+
+		cd /var/lib/
+		
+		ls -ahl
+				total 68K
+				drwxr-xr-x 1 root  root  4.0K Jan 21 08:33 .
+				drwxr-xr-x 1 root  root  4.0K Jan 21 08:33 ..
+				drwxr-xr-x 1 root  root  4.0K Mar 27  2021 alternatives
+				drwxr-xr-x 1 root  root  4.0K Mar 14  2019 dbus
+				drwxr-xr-x 1 root  root  4.0K Apr 11  2018 games
+				drwxr-xr-x 1 root  root  4.0K Nov  2  2018 initramfs
+				drwx------ 1 root  root  4.0K Aug  1  2019 machines
+				drwxr-xr-x 1 root  root  4.0K Apr 11  2018 misc
+				drwxr-xr-x 2 mysql mysql 4.0K Oct  1  2020 mysqld
+				drwxr-xr-x 1 root  root  4.0K Jan 21 08:33 rpm
+				drwxr-xr-x 1 root  root  4.0K Apr 11  2018 rpm-state
+				drwxr-xr-x 1 root  root  4.0K Oct 15  2019 stateless
+				drwxr-xr-x 1 root  root  4.0K Aug  1  2019 systemd
+				drwxr-xr-x 1 root  root  4.0K Mar 27  2021 yum
+   		
+   		sudo mv ./mysqld/ ./mysql
+
+		ls -ahl
+				total 68K
+				drwxr-xr-x 1 root  root  4.0K Jan 21 08:36 .
+				drwxr-xr-x 1 root  root  4.0K Jan 21 08:33 ..
+				drwxr-xr-x 1 root  root  4.0K Mar 27  2021 alternatives
+				drwxr-xr-x 1 root  root  4.0K Mar 14  2019 dbus
+				drwxr-xr-x 1 root  root  4.0K Apr 11  2018 games
+				drwxr-xr-x 1 root  root  4.0K Nov  2  2018 initramfs
+				drwx------ 1 root  root  4.0K Aug  1  2019 machines
+				drwxr-xr-x 1 root  root  4.0K Apr 11  2018 misc
+				drwxr-xr-x 2 mysql mysql 4.0K Oct  1  2020 mysql
+				drwxr-xr-x 1 root  root  4.0K Jan 21 08:33 rpm
+				drwxr-xr-x 1 root  root  4.0K Apr 11  2018 rpm-state
+				drwxr-xr-x 1 root  root  4.0K Oct 15  2019 stateless
+				drwxr-xr-x 1 root  root  4.0K Aug  1  2019 systemd
+				drwxr-xr-x 1 root  root  4.0K Mar 27  2021 yum
+
+		sudo systemctl start mariadb.service
+		
+		sudo systemctl status mariadb.service -l
+				● mariadb.service - MariaDB database server
+				   Loaded: loaded (/usr/lib/systemd/system/mariadb.service; disabled; vendor preset: disabled)
+				   Active: active (running) since Fri 2022-01-21 08:36:36 UTC; 6s ago
+				  Process: 726 ExecStartPost=/usr/libexec/mariadb-wait-ready $MAINPID (code=exited, status=0/SUCCESS)
+				  Process: 644 ExecStartPre=/usr/libexec/mariadb-prepare-db-dir %n (code=exited, status=0/SUCCESS)
+				 Main PID: 725 (mysqld_safe)
+				   CGroup: /docker/7f68724b430981fe5a30e09857b4ab85ca0ef61407110b8195d31483d08b2c1e/system.slice/mariadb.service
+				           ├─725 /bin/sh /usr/bin/mysqld_safe --basedir=/usr
+				           └─889 /usr/libexec/mysqld --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib64/mysql/plugin --log-error=/var/log/mariadb/mariadb.log --pid-file=/var/run/mariadb/mariadb.pid --socket=/var/lib/mysql/mysql.sock
+
+				Jan 21 08:36:34 stdb01.stratos.xfusioncorp.com systemd[725]: Executing: /usr/bin/mysqld_safe --basedir=/usr
+				Jan 21 08:36:34 stdb01.stratos.xfusioncorp.com systemd[726]: Executing: /usr/libexec/mariadb-wait-ready 725
+				Jan 21 08:36:34 stdb01.stratos.xfusioncorp.com mysqld_safe[725]: 220121 08:36:34 mysqld_safe Logging to '/var/log/mariadb/mariadb.log'.
+				Jan 21 08:36:34 stdb01.stratos.xfusioncorp.com mysqld_safe[725]: 220121 08:36:34 mysqld_safe Starting mysqld daemon with databases from /var/lib/mysql
+				Jan 21 08:36:36 stdb01.stratos.xfusioncorp.com systemd[1]: Child 726 belongs to mariadb.service
+				Jan 21 08:36:36 stdb01.stratos.xfusioncorp.com systemd[1]: mariadb.service: control process exited, code=exited status=0
+				Jan 21 08:36:36 stdb01.stratos.xfusioncorp.com systemd[1]: mariadb.service got final SIGCHLD for state start-post
+				Jan 21 08:36:36 stdb01.stratos.xfusioncorp.com systemd[1]: mariadb.service changed start-post -> running
+				Jan 21 08:36:36 stdb01.stratos.xfusioncorp.com systemd[1]: Job mariadb.service/start finished, result=done
+				Jan 21 08:36:36 stdb01.stratos.xfusioncorp.com systemd[1]: Started MariaDB database server.
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 22 : 22/Jan/2022
+Linux Configure sudo
+
+We have some users on all app servers in Stratos Datacenter. Some of them have been assigned some new roles and responsibilities, therefore their users need to be upgraded with sudo access so that they can perform admin level tasks.
+
+a. Provide sudo access to user jim on all app servers.
+
+b. Make sure you have set up password-less sudo for the user.
+
+			ssh banner@stapp03
+
+			id jim
+
+			sudo cat /etc/sudoers|grep jim
+
+			sudo visudo											   <Edit sudoers file>
+						jim    ALL=(ALL)   NOPASSWD:ALL            <Insert this line at end of file>
+
+			sudo cat /etc/sudoers|grep jim
+				jim    ALL=(ALL)   NOPASSWD:ALL
+
+			sudo su - jim   										<Password less login to jim shell>
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 23 : 23/Jan/2022
+ Linux GPG Encryption
+
+ We have confidential data that needs to be transferred to a remote location, so we need to encrypt that data.We also need to decrypt data we received from a remote location in order to understand its content.
+
+On storage server in Stratos Datacenter we have private and public keys stored /home/*_key.asc. Use those keys to perform the following actions.
+
+    Encrypt /home/encrypt_me.txt to /home/encrypted_me.asc.
+
+    Decrypt /home/decrypt_me.asc to /home/decrypted_me.txt. (Passphrase for decryption and encryption is kodekloud).
+
+
+			1. Login on storage server & switch to root user 
+				ssh natasha@ststor01
+
+				sudo su - 
+
+			2. All file in /home 
+				# cd /home/
+				
+				# ls -ahl
+					total 32K
+					drwxr-xr-x 1 root    root    4.0K Jan 23 15:21 .
+					drwxr-xr-x 1 root    root    4.0K Jan 23 15:20 ..
+					drwx------ 1 ansible ansible 4.0K Oct 15  2019 ansible
+					-rw-r--r-- 1 root    root     155 Jan 23 15:16 decrypt_me.asc
+					-rw-r--r-- 1 root    root      99 Jan 23 15:21 encrypt_me.txt
+					drwx------ 1 natasha natasha 4.0K Jan 12  2020 natasha
+					-rw-r--r-- 1 root    root    3.6K Jan 23 15:21 private_key.asc
+					-rw-r--r-- 1 root    root    1.7K Jan 23 15:21 public_key.asc
+
+
+			3. Import gpg Public and Private keys
+			# gpg --import public_key.asc 
+					gpg: directory `/root/.gnupg' created
+					gpg: new configuration file `/root/.gnupg/gpg.conf' created
+					gpg: WARNING: options in `/root/.gnupg/gpg.conf' are not yet active during this run
+					gpg: keyring `/root/.gnupg/secring.gpg' created
+					gpg: keyring `/root/.gnupg/pubring.gpg' created
+					gpg: /root/.gnupg/trustdb.gpg: trustdb created
+					gpg: key CCE3AF51: public key "kodekloud <kodekloud@kodekloud.com>" imported
+					gpg: Total number processed: 1
+					gpg:               imported: 1  (RSA: 1)
+			
+			# gpg --import private_key.asc 
+					gpg: key CCE3AF51: secret key imported
+					gpg: key CCE3AF51: "kodekloud <kodekloud@kodekloud.com>" not changed
+					gpg: Total number processed: 1
+					gpg:              unchanged: 1
+					gpg:       secret keys read: 1
+					gpg:   secret keys imported: 1
+
+			4. Kindly verify keys are imported successfully
+			# gpg --list-keys
+					/root/.gnupg/pubring.gpg
+					------------------------
+					pub   2048R/CCE3AF51 2020-01-19
+					uid                  kodekloud <kodekloud@kodekloud.com>
+					sub   2048R/865C070D 2020-01-19
+
+			# gpg --list-secret-keys
+					/root/.gnupg/secring.gpg
+					------------------------
+					sec   2048R/CCE3AF51 2020-01-19
+					uid                  kodekloud <kodekloud@kodekloud.com>
+					ssb   2048R/865C070D 2020-01-19
+
+			5. Encrypt txt file to asc
+			# gpg --encrypt -r kodekloud@kodekloud.com --armor < encrypt_me.txt  -o encrypted_me.asc
+					gpg: 865C070D: There is no assurance this key belongs to the named user
+
+					pub  2048R/865C070D 2020-01-19 kodekloud <kodekloud@kodekloud.com>
+					 Primary key fingerprint: FEA8 5011 C456 B5E9 AE5A  516F 8F17 F26E CCE3 AF51
+					      Subkey fingerprint: 7B4B 5CFC 5E4F B4B6 EEC0  83E5 DD6B 8506 865C 070D
+
+					It is NOT certain that the key belongs to the person named
+					in the user ID.  If you *really* know what you are doing,
+					you may answer the next question with yes.
+
+					Use this key anyway? (y/N) y
+
+			6. Will decrypt the file asc in to txt  using passphrase 
+			# gpg --decrypt decrypt_me.asc > decrypted_me.txt
+					gpg: AES encrypted data
+					gpg: encrypted with 1 passphrase
+
+			7. check the file list in /home		
+			# ls -ahl
+					total 40K
+					drwxr-xr-x 1 root    root    4.0K Jan 23 15:25 .
+					drwxr-xr-x 1 root    root    4.0K Jan 23 15:20 ..
+					drwx------ 1 ansible ansible 4.0K Oct 15  2019 ansible
+					-rw-r--r-- 1 root    root      80 Jan 23 15:25 decrypted_me.txt
+					-rw-r--r-- 1 root    root     155 Jan 23 15:16 decrypt_me.asc
+					-rw-r--r-- 1 root    root     669 Jan 23 15:25 encrypted_me.asc
+					-rw-r--r-- 1 root    root      99 Jan 23 15:21 encrypt_me.txt
+					drwx------ 1 natasha natasha 4.0K Jan 12  2020 natasha
+					-rw-r--r-- 1 root    root    3.6K Jan 23 15:21 private_key.asc
+					-rw-r--r-- 1 root    root    1.7K Jan 23 15:21 public_key.asc
+
+			8. check the output of encrypted and decrypted files
+			# cat decrypted_me.txt 
+					Welcome to xFusionCorp Industries. This is KodeKloud System Administration Lab 
+			
+			# cat decrypt_me.asc 
+					'h'ҊOoD+)δ1RK*PH
+					L1!f    21 ԎZDvpFBCV(\59.9Ӫ%Rv
+
+			# cat encrypt_me.txt 
+					My name is "My Name"
+
+					My credit card number is 1234-5678-9012-3456
+
+					The password for my phone is 42
+
+			# cat encrypted_me.asc 
+					-----BEGIN PGP MESSAGE-----
+					Version: GnuPG v2.0.22 (GNU/Linux)
+
+					hQEMA91rhQaGXAcNAQf/Shhnmvp1iMsPvS30d8tBImtVQ5z+0CpHImJoIuOLJx8w
+					akRvruFHX7pV0qgU4kNO0pfsmojgF8R7mlaHE9vHE9hKOYTfnHMhcm0K1bEPCY/c
+					UvaRpTvB+7aTtGIcIqB8BLi9lmymcIR4rMtSFe/+sHo/2m4brttnu3pj4PisMC3m
+					r7/z/KsyxCPHiOgcHZaz/gVcCHYCWSWI8qv5mV+aSU6kE5WULx9QsQi/kQTtMvBy
+					flgsTvGL8h3PPzPhUueRrOcXrjGZ9b1M1wFa5H9JfHNMxAbYB5tBexUrSRVB41To
+					loCwG01eHp6Qw+3Tn7qekTSCtUJ84NhppHts2HXHVtKUAZhPj8IB8cRTDrmEsYW5
+					f+5uwVlZQtfN0CDua54vu4BIF2sy75FEjuq+6W4yVcsJlsk7f8A7RLO0+aaqZl30
+					Xwtz3LREMTAYcmuhrn1ddn4M570hQILvm+I1pvH0zgU26sguWaEUtJDN8igPOM6j
+					nNHbLi5M3zdkM1+C8YfOMvKXRyWWIt16nZ1FoitwbDrx4LlqIA==
+					=EZqC
+					-----END PGP MESSAGE-----
+			
+			# exit 
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 24:24/Jan/2022
+Add Response Headers in Apache
+
+We are working on hardening Apache web server on all app servers. As a part of this process we want to add some of the Apache response headers for security purpose. We are testing the settings one by one on all app servers. As per details mentioned below enable these headers for Apache:
+
+    Install httpd package on App Server 2 using yum and configure it to run on 3000 port, make sure to start its service.
+
+    Create an index.html file under Apache's default document root i.e /var/www/html and add below given content in it.
+
+    Welcome to the xFusionCorp Industries!
+
+    Configure Apache to enable below mentioned headers:
+
+    X-XSS-Protection header with value 1; mode=block
+
+    X-Frame-Options header with value SAMEORIGIN
+
+    X-Content-Type-Options header with value nosniff
+
+Note: You can test using curl on the given app server as LBR URL will not work for this task.
+
+		1. Login to App Server 2
+		ssh steve@stapp02
+
+		2. Install httpd Apache web server package
+		sudo yum install httpd -y
+
+		3. Edit httpd configuration file, add port and header configuration changes in the end of file
+		sudo vi /etc/httpd/conf/httpd.conf 
+				#Listen on Port 3000
+				Listen 3000
+
+				#Header Configurations	
+				Header set X-XSS-Protection "1; mode=block"
+				Header always append X-Frame-Options SAMEORIGIN
+				Header set X-Content-Type-Options nosniff
+		
+		4. check the configuartion changes
+		cat /etc/httpd/conf/httpd.conf |grep Listen
+				# Listen: Allows you to bind Apache to specific IP addresses and/or
+				# Change this to Listen on specific IP addresses as shown below to 
+				#Listen 12.34.56.78:80
+				#Listen 80
+				Listen 3000
+		
+		cat /etc/httpd/conf/httpd.conf |grep X
+				Header set X-XSS-Protection "1; mode=block"
+				Header always append X-Frame-Options SAMEORIGIN
+				Header set X-Content-Type-Options nosniff
+		
+		cat /etc/httpd/conf/httpd.conf |grep Header
+				#Header Configurations
+				Header set X-XSS-Protection "1; mode=block"
+				Header always append X-Frame-Options SAMEORIGIN
+				Header set X-Content-Type-Options nosniff
+
+		5. Edit index.html file
+		sudo vi /var/www/html/index.html
+				Welcome to the xFusionCorp Industries!
+
+		ls -ahl /var/www/html
+				total 12K
+				drwxr-xr-x 2 root root 4.0K Jan 24 16:20 .
+				drwxr-xr-x 4 root root 4.0K Jan 24 16:16 ..
+				-rw-r--r-- 1 root root   69 Jan 24 16:20 index.html
+
+		6. Start Apache web server service and check status
+		sudo systemctl start httpd
+		
+		sudo systemctl status httpd
+				● httpd.service - The Apache HTTP Server
+				   Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
+				   Active: active (running) since Mon 2022-01-24 16:25:56 UTC; 7s ago
+				     Docs: man:httpd(8)
+				           man:apachectl(8)
+				 Main PID: 808 (httpd)
+				   Status: "Processing requests..."
+				   CGroup: /docker/86ba0bd645f0a20cf7b27e3170432749c55f5b8cc39710538ac978dc448ddb5f/system.slice/httpd.service
+				           ├─808 /usr/sbin/httpd -DFOREGROUND
+				           ├─809 /usr/sbin/httpd -DFOREGROUND
+				           ├─810 /usr/sbin/httpd -DFOREGROUND
+				           ├─811 /usr/sbin/httpd -DFOREGROUND
+				           ├─812 /usr/sbin/httpd -DFOREGROUND
+				           └─813 /usr/sbin/httpd -DFOREGROUND
+
+				Jan 24 16:25:56 stapp02.stratos.xfusioncorp.com systemd[808]: Executing: /usr/sbin/httpd -DFOREGROUND
+				Jan 24 16:25:56 stapp02.stratos.xfusioncorp.com httpd[808]: AH00558: httpd: Could not reliably determine the server's fully qualifie...essage
+				Jan 24 16:25:56 stapp02.stratos.xfusioncorp.com systemd[1]: Got notification message for unit httpd.service
+				Jan 24 16:25:56 stapp02.stratos.xfusioncorp.com systemd[1]: httpd.service: Got notification message from PID 808 (READY=1, STATUS=Pr...D=808)
+				Jan 24 16:25:56 stapp02.stratos.xfusioncorp.com systemd[1]: httpd.service: got MAINPID=808
+				Jan 24 16:25:56 stapp02.stratos.xfusioncorp.com systemd[1]: httpd.service: got READY=1
+				Jan 24 16:25:56 stapp02.stratos.xfusioncorp.com systemd[1]: httpd.service changed start -> running
+				Jan 24 16:25:56 stapp02.stratos.xfusioncorp.com systemd[1]: Job httpd.service/start finished, result=done
+				Jan 24 16:25:56 stapp02.stratos.xfusioncorp.com systemd[1]: Started The Apache HTTP Server.
+				Jan 24 16:25:56 stapp02.stratos.xfusioncorp.com systemd[1]: httpd.service: got STATUS=Processing requests...
+				Hint: Some lines were ellipsized, use -l to show in full.
+		
+		7.Validate by using curl to fetch webpage
+		curl http://localhost:3000
+				Welcome to the xFusionCorp Industries!
+		
+		curl -i http://localhost:3000
+				HTTP/1.1 200 OK
+				Date: Mon, 24 Jan 2022 16:27:03 GMT
+				Server: Apache/2.4.6 (CentOS)
+				X-Frame-Options: SAMEORIGIN
+				Last-Modified: Mon, 24 Jan 2022 16:26:47 GMT
+				ETag: "27-5d6566f588809"
+				Accept-Ranges: bytes
+				Content-Length: 39
+				X-XSS-Protection: 1; mode=block
+				X-Content-Type-Options: nosniff
+				Content-Type: text/html; charset=UTF-8
+
+				Welcome to the xFusionCorp Industries!
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Task 25:25/Jan/2022
+Linux Find Command
+During a routine security audit, the team identified an issue on the Nautilus App Server. Some malicious content was identified within the website code. After digging into the issue they found that there might be more infected files. Before doing a cleanup they would like to find all similar files and copy them to a safe location for further investigation. Accomplish the task as per the following requirements:
+
+a. On App Server 3 at location /var/www/html/news find out all files (not directories) having .php extension.
+
+b. Copy all those files along with their parent directory structure to location /news on same server.
+
+c. Please make sure not to copy the entire /var/www/html/news directory content.
+
+
+		ssh banner@stapp03
+
+		sudo find /var/www/html/news/ -type f -name '*.php'|wc -l
+				903
+
+		sudo find /var/www/html/news/ -type f -name '*.php' -exec cp --parents {} /news \;
+
+		sudo find /news/var/www/html/news/ -type f -name '*.php'|wc -l
+				903
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 26 : 27/Jan/2022
+Setup SSL for Nginx
+The system admins team of xFusionCorp Industries needs to deploy a new application on App Server 2 in Stratos Datacenter. They have some pre-requites to get ready that server for application deployment. Prepare the server as per requirements shared below:
+
+    Install and configure nginx on App Server 2.
+
+    On App Server 2 there is a self signed SSL certificate and key present at location /tmp/nautilus.crt and /tmp/nautilus.key. Move them to some appropriate location and deploy the same in Nginx.
+
+    Create an index.html file with content Welcome! under Nginx document root.
+
+    For final testing try to access the App Server 2 link (either hostname or IP) from jump host using curl command. For example curl -Ik https://<app-server-ip>/.
+
+
+    	1. Login to app server 2
+		ssh steve@stapp02
+
+		2. Install epel-release repository
+		sudo yum install epel-release -y
+
+		3. Install nginx package
+		sudo yum install nginx -y
+
+		4. Edit nginx config file to include server ip (172.16.238.11) and ssl certificate and key file location 
+			<remember to uncomment the SSL configuration part>
+		sudo vi /etc/nginx/nginx.conf
+
+					server {
+					        listen       80 default_server;
+					        listen       [::]:80 default_server;
+					        server_name  172.16.238.11;
+					        root         /usr/share/nginx/html;
+
+					        # Load configuration files for the default server block.
+					        include /etc/nginx/default.d/*.conf;
+
+					        error_page 404 /404.html;
+					        location = /404.html {
+					        }
+
+					        error_page 500 502 503 504 /50x.html;
+					        location = /50x.html {
+		        			}
+		    		}
+
+					# Settings for a TLS enabled server.
+				    server {
+					        listen       443 ssl http2 default_server;
+					        listen       [::]:443 ssl http2 default_server;
+					        server_name  172.16.238.11;
+					        root         /usr/share/nginx/html;
+					        ssl_certificate "/etc/pki/CA/certs/nautilus.crt";
+					        ssl_certificate_key "/etc/pki/CA/private/nautilus.key";
+					        ssl_session_cache shared:SSL:1m;
+					        ssl_session_timeout  10m;
+					        ssl_ciphers HIGH:!aNULL:!MD5;
+					        ssl_prefer_server_ciphers on;
+					
+					        # Load configuration files for the default server block.
+					        include /etc/nginx/default.d/*.conf;
+
+					        error_page 404 /404.html;
+					            location = /40x.html {
+					        }
+
+					        error_page 500 502 503 504 /50x.html;
+					            location = /50x.html {
+					        }
+					    }
+				}
+
+
+		5. Confirm the nginx config file changes
+		cat /etc/nginx/nginx.conf
+
+		6. copy the certificate and key files 
+
+		sudo cp /tmp/nautilus.crt /etc/pki/CA/certs/
+		sudo cp /tmp/nautilus.key /etc/pki/CA/private/
+
+		7. Check index.html file and replace it with mentioned file
+
+		sudo ls -ahl /usr/share/nginx/html/
+				total 16
+				-rw-r--r-- 1 root root 3650 Jun  2 00:21 404.html
+				-rw-r--r-- 1 root root 3693 Jun  2 00:21 50x.html
+				lrwxrwxrwx 1 root root   20 Jul 25 11:56 en-US -> ../../doc/HTML/en-US
+				drwxr-xr-x 2 root root 4096 Jul 25 11:56 icons
+				lrwxrwxrwx 1 root root   18 Jul 25 11:56 img -> ../../doc/HTML/img
+				lrwxrwxrwx 1 root root   25 Jul 25 11:56 index.html -> ../../doc/HTML/index.html
+				-rw-r--r-- 1 root root  368 Jun  2 00:21 nginx-logo.png
+				lrwxrwxrwx 1 root root   14 Jul 25 11:56 poweredby.png -> nginx-logo.png
+
+		sudo rm /usr/share/nginx/html/index.html
+
+		sudo vi /usr/share/nginx/html/index.html
+				Welcome!
+
+		sudo cat /usr/share/nginx/html/index.html
+				Welcome!
+
+		8. Start and check status of nginx server
+		sudo systemctl start nginx
+
+		sudo systemctl status nginx
+
+		9. From another instance of jump server
+				thor@jump_host ~$ curl -Ik https://stapp02
+
+						HTTP/1.1 200 OK
+
+						Server: nginx/1.20.1
+
+						Date: Sun, 25 Jul 2021 12:32:39 GMT
+
+						Content-Type: text/html
+
+						Content-Length: 9
+
+						Last-Modified: Sun, 25 Jul 2021 12:14:24 GMT
+
+						Connection: keep-alive
+
+						ETag: "60fd55a0-9"
+
+						Accept-Ranges: bytes
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 27 : 28/Jan/2022
+Linux Bash Scripts
+The production support team of xFusionCorp Industries is working on developing some bash scripts to automate different day to day tasks. One is to create a bash script for taking websites backup. They have a static website running on App Server 1 in Stratos Datacenter, and they need to create a bash script named media_backup.sh which should accomplish the following tasks. (Also remember to place the script under /scripts directory on App Server 1)
+
+a. Create a zip archive named xfusioncorp_media.zip of /var/www/html/media directory.
+
+b. Save the archive in /backup/ on App Server 1. This is a temporary storage, as backups from this location will be clean on weekly basis. Therefore, we also need to save this backup archive on Nautilus Backup Server.
+
+c. Copy the created archive to Nautilus Backup Server server in /backup/ location.
+
+d. Please make sure script won't ask for password while copying the archive file. Additionally, the respective server user (for example, tony in case of App Server 1) must be able to run it.
+
+
+
+		1.Login to app server 1
+		 ssh tony@stapp01
+
+		2. Create the bash script
+		cd /scripts/
+
+		ls -ahl
+			total 8.0K
+			drwxrwxrwx 2 root root 4.0K Jan 28 06:59 .
+			drwxr-xr-x 1 root root 4.0K Jan 28 06:59 ..
+
+		vi media_backup.sh
+			
+			#! /bin/bash
+			
+			zip -r /backup/xfusioncorp_media.zip /var/www/html/media
+			
+			scp /backup/xfusioncorp_media.zip clint@stbkp01:/backup
+
+		cat /scripts/media_backup.sh 
+			#! /bin/bash
+
+			zip -r /backup/xfusioncorp_media.zip /var/www/html/media
+
+			scp /backup/xfusioncorp_media.zip clint@stbkp01:/backup
+
+
+		3. Create password-less login to backup server using key-pair
+		ssh-keygen 
+				Generating public/private rsa key pair.
+				Enter file in which to save the key (/home/tony/.ssh/id_rsa): 
+				Created directory '/home/tony/.ssh'.
+				Enter passphrase (empty for no passphrase): 
+				Enter same passphrase again: 
+				Your identification has been saved in /home/tony/.ssh/id_rsa.
+				Your public key has been saved in /home/tony/.ssh/id_rsa.pub.
+				The key fingerprint is:
+				SHA256:qL0YvCn3EEL39VMf9jDs12BQxwtiDaTn5DyKO2n+8KE tony@stapp01.stratos.xfusioncorp.com
+				The key's randomart image is:
+				+---[RSA 2048]----+
+				|          .o+....|
+				|          .o = ..|
+				|  . .   ...oo X .|
+				| . . . o .*. = B.|
+				|  . . o S o=  o +|
+				|   o +  . ...  . |
+				|    = .o.o       |
+				|  . .* == .      |
+				|   o+.=Eoo       |
+				+----[SHA256]-----+
+
+
+		ssh-copy-id clint@stbkp01
+				/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/home/tony/.ssh/id_rsa.pub"
+				The authenticity of host 'stbkp01 (172.16.238.16)' can't be established.
+				ECDSA key fingerprint is SHA256:qummShb1MtTGDQrZOj4nbUBI2G1DSooSSRI0rtBukCg.
+				ECDSA key fingerprint is MD5:c3:3f:41:45:1e:73:13:5b:fb:2b:43:33:e0:a5:74:f8.
+				Are you sure you want to continue connecting (yes/no)? yes
+				/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+				/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+				clint@stbkp01's password: 
+
+				Number of key(s) added: 1
+
+				Now try logging into the machine, with:   "ssh 'clint@stbkp01'"
+				and check to make sure that only the key(s) you wanted were added.
+
+		4. Verify passwordless login to backup server
+		ssh clint@stbkp01
+			[clint@stbkp01 ~]$ 
+			[clint@stbkp01 ~]$ 
+			[clint@stbkp01 ~]$ logout
+			Connection to stbkp01 closed.
+
+		5. Run the bash script
+		sh /scripts/media_backup.sh 
+			  adding: var/www/html/media/ (stored 0%)
+			  adding: var/www/html/media/index.html (stored 0%)
+			  adding: var/www/html/media/.gitkeep (stored 0%)
+			xfusioncorp_media.zip                                                                                      100%  595     1.6MB/s   00:00    
+
+		6. Verify the backups created on local as well as backup server
+		ls -ahl /backup
+			total 12K
+			drwxrwxrwx 2 root root 4.0K Jan 28 07:05 .
+			drwxr-xr-x 1 root root 4.0K Jan 28 06:59 ..
+			-rw-rw-r-- 1 tony tony  595 Jan 28 07:05 xfusioncorp_media.zip
+
+		ssh clint@stbkp01
+
+		[clint@stbkp01 ~]$ls -ahl /backup/
+							total 12K
+							drwxrwxrwx 2 root  root  4.0K Jan 28 07:05 .
+							drwxr-xr-x 1 root  root  4.0K Jan 28 06:59 ..
+							-rw-rw-r-- 1 clint clint  595 Jan 28 07:05 xfusioncorp_media.zip
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 28 : 29/Jan/2022
+Install a package
+As per new application requirements shared by the Nautilus project development team, serveral new packages need to be installed on all app servers in Stratos Datacenter. Most of them are completed except for telnet.
+
+Therefore, install the telnet package on all app-servers
+
+
+		ssh tony@stapp01
+
+		sudo yum install -y telnet
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 29 : 30/Jan/2022
+Apache Redirects
+
+The Nautilus devops team got some requirements related to some Apache config changes. They need to setup some redirects for some URLs. There might be some more changes need to be done. Below you can find more details regarding that:
+
+    httpd is already installed on app server 1. Configure Apache to listen on port 8089.
+
+    Configure Apache to add some redirects as mentioned below:
+
+    a.) Redirect http://stapp01.stratos.xfusioncorp.com:<Port>/ to http://www.stapp01.stratos.xfusioncorp.com:<Port>/ i.e non www to www. This must be a permanent redirect i.e 301
+
+    b.) Redirect http://www.stapp01.stratos.xfusioncorp.com:<Port>/blog/ to http://www.stapp01.stratos.xfusioncorp.com:<Port>/news/. This must be a temporary redirect i.e 302.
+
+
+		1. Login to App Server 1
+		ssh tony@stapp01
+
+		2. Validate if httpd is installed
+		sudo rpm -qa|grep httpd
+			httpd-tools-2.4.6-90.el7.centos.x86_64
+			httpd-2.4.6-90.el7.centos.x86_64
+
+		3. Check if httpd is running
+		sudo systemctl status httpd
+		● httpd.service - The Apache HTTP Server
+		   Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
+		   Active: inactive (dead)
+		     Docs: man:httpd(8)
+		           man:apachectl(8)
+		
+		4. Check the Listening port
+		sudo cat /etc/httpd/conf/httpd.conf |grep Listen
+			# Listen: Allows you to bind Apache to specific IP addresses and/or
+			# Change this to Listen on specific IP addresses as shown below to 
+			#Listen 12.34.56.78:80
+			Listen 8080
+		
+		5. Change the Listen port to 8089 and verify the changes 
+		sudo vi /etc/httpd/conf/httpd.conf
+			Listen 8089 
+		
+		 sudo cat /etc/httpd/conf/httpd.conf |grep Listen
+			# Listen: Allows you to bind Apache to specific IP addresses and/or
+			# Change this to Listen on specific IP addresses as shown below to 
+			#Listen 12.34.56.78:80
+			Listen 8089
+		
+		6. Create a main.conf under conf.d to make the redirection related changes
+		cd /etc/httpd/conf.d/
+		
+		ls -ahl
+			total 32K
+			drwxr-xr-x 1 root root 4.0K Jan  7  2020 .
+			drwxr-xr-x 1 root root 4.0K Jan  7  2020 ..
+			-rw-r--r-- 1 root root 2.9K Aug  8  2019 autoindex.conf
+			-rw-r--r-- 1 root root 1.3K Dec 17  2019 php.conf
+			-rw-r--r-- 1 root root  366 Aug  8  2019 README
+			-rw-r--r-- 1 root root 1.3K Aug  6  2019 userdir.conf
+			-rw-r--r-- 1 root root  824 Aug  6  2019 welcome.conf
+		
+		sudo vi main.conf
+			<VirtualHost *:8089>
+				ServerName stapp01.stratos.xfusioncorp.com
+				Redirect 301 / http://www.stapp01.stratos.xfusioncorp.com:8089/
+			</VirtualHost>
+
+			<VirtualHost *:8089>
+				ServerName www.stapp01.stratos.xfusioncorp.com:8089/blog/
+				Redirect 302 /blog/ http://www.stapp01.stratos.xfusioncorp.com:8089/news/
+			</VirtualHost>
+		sudo cat main.conf 
+			<VirtualHost *:8089>
+				ServerName stapp01.stratos.xfusioncorp.com
+				Redirect 301 / http://www.stapp01.stratos.xfusioncorp.com:8089/
+			</VirtualHost>
+
+			<VirtualHost *:8089>
+				ServerName www.stapp01.stratos.xfusioncorp.com:8089/blog/
+				Redirect 302 /blog/ http://www.stapp01.stratos.xfusioncorp.com:8089/news/
+			</VirtualHost>
+		
+		7. Restart	and check Httpd service
+		sudo systemctl restart httpd
+		
+		sudo systemctl status httpd
+			● httpd.service - The Apache HTTP Server
+			   Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
+			   Active: active (running) since Sun 2022-01-30 11:30:13 UTC; 6s ago
+			     Docs: man:httpd(8)
+			           man:apachectl(8)
+			 Main PID: 657 (httpd)
+			   Status: "Processing requests..."
+			   CGroup: /docker/5526afe4a390e9a3543e9246fde391ad0bb5c973f37d743de534d90f67770b66/system.slice/httpd.service
+			           ├─657 /usr/sbin/httpd -DFOREGROUND
+			           ├─659 /usr/sbin/httpd -DFOREGROUND
+			           ├─660 /usr/sbin/httpd -DFOREGROUND
+			           ├─661 /usr/sbin/httpd -DFOREGROUND
+			           ├─662 /usr/sbin/httpd -DFOREGROUND
+			           └─663 /usr/sbin/httpd -DFOREGROUND
+
+			Jan 30 11:30:13 stapp01.stratos.xfusioncorp.com systemd[1]: Starting The Apache HTTP Server...
+			Jan 30 11:30:13 stapp01.stratos.xfusioncorp.com systemd[1]: Started The Apache HTTP Server.
+
+		8. Verify the Redirection related changes	
+		curl http://stapp01.stratos.xfusioncorp.com:8089/
+			<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+			<html><head>
+			<title>301 Moved Permanently</title>
+			</head><body>
+			<h1>Moved Permanently</h1>
+			<p>The document has moved <a href="http://www.stapp01.stratos.xfusioncorp.com:8089/">here</a>.</p>
+			</body></html>
+
+		curl http://www.stapp01.stratos.xfusioncorp.com:8089/
+			Welcome to the Nautilus Group!
+
+		curl http://www.stapp01.stratos.xfusioncorp.com:8089/blog/
+			<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+			<html><head>
+			<title>302 Found</title>
+			</head><body>
+			<h1>Found</h1>
+			<p>The document has moved <a href="http://www.stapp01.stratos.xfusioncorp.com:8089/news/">here</a>.</p>
+			</body></html>
+
+		curl http://www.stapp01.stratos.xfusioncorp.com:8089/news/
+			<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+			<html><head>
+			<title>404 Not Found</title>
+			</head><body>
+			<h1>Not Found</h1>
+			<p>The requested URL /news/ was not found on this server.</p>
+			</body></html>
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 30: 31/Jan/2022
+Web Server Security
+
+During a recent security audit, the application security team of xFusionCorp Industries found security issues with the Apache web server on Nautilus App Server 2 server in Stratos DC. They have listed several security issues that need to be fixed on this server. Please apply the security settings below:
+
+a. On Nautilus App Server 2 it was identified that the Apache web server is exposing the version number. Ensure this server has the appropriate settings to hide the version number of the Apache web server.
+
+b. There is a website hosted under /var/www/html/blog on App Server 2. It was detected that the directory /blog lists all of its contents while browsing the URL. Disable the directory browser listing in Apache config.
+
+c. Also make sure to restart the Apache service after making the changes.
+
+		1. Login to App Server 2
+		ssh steve@stapp02
+
+		2. Check if Apache web server is running
+		sudo systemctl status httpd
+			● httpd.service - The Apache HTTP Server
+			   Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
+			   Active: inactive (dead)
+			     Docs: man:httpd(8)
+			           man:apachectl(8)
+
+		3. Check for config ServerTokens, Serversignature and Indexes in httpd configuration file
+		cd /etc/httpd/conf/
+		cat httpd.conf|grep ServerTokens
+		cat httpd.conf|grep ServerSignatures
+		cat httpd.conf|grep Indexes
+		    #   Indexes Includes FollowSymLinks SymLinksifOwnerMatch ExecCGI MultiViews
+		    Options Indexes FollowSymLinks
+
+		4. Set values for ServerTokens, ServerSignature and remove Indexes from Options
+		sudo vi httpd.conf 
+				
+				ServerSignature Off
+		 		ServerTokens Prod
+		 		
+		 		#   Indexes Includes FollowSymLinks SymLinksifOwnerMatch ExecCGI MultiViews
+				    Options FollowSymLinks	
+		 		
+		5. Verify the changes in httpd.conf
+		cat httpd.conf|grep ServerTokens
+			ServerTokens Prod
+		cat httpd.conf|grep ServerSignature
+			ServerSignature Off
+		cat httpd.conf|grep Indexes
+		    #   Indexes Includes FollowSymLinks SymLinksifOwnerMatch ExecCGI MultiViews
+		6. Restart the httpd and check status 
+		sudo systemctl restart httpd
+
+		sudo systemctl status httpd
+			● httpd.service - The Apache HTTP Server
+			   Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
+			   Active: active (running) since Mon 2022-01-31 12:58:27 UTC; 11s ago
+			     Docs: man:httpd(8)
+			           man:apachectl(8)
+			 Main PID: 766 (httpd)
+			   Status: "Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec"
+			   CGroup: /docker/7ada9062fe471d5a3ab1ef8286b690dba8c49734ee4568770b128a2c0b2024a6/system.slice/httpd.service
+			           ├─766 /usr/sbin/httpd -DFOREGROUND
+			           ├─768 /usr/sbin/httpd -DFOREGROUND
+			           ├─769 /usr/sbin/httpd -DFOREGROUND
+			           ├─770 /usr/sbin/httpd -DFOREGROUND
+			           ├─771 /usr/sbin/httpd -DFOREGROUND
+			           └─772 /usr/sbin/httpd -DFOREGROUND
+
+			Jan 31 12:58:26 stapp02.stratos.xfusioncorp.com systemd[1]: Starting The Apache HTTP Server...
+			Jan 31 12:58:27 stapp02.stratos.xfusioncorp.com httpd[766]: AH00558: httpd: Could not reliably determine the server's fully qualifie...essage
+			Jan 31 12:58:27 stapp02.stratos.xfusioncorp.com systemd[1]: Started The Apache HTTP Server.
+			Hint: Some lines were ellipsized, use -l to show in full.
+
+		7. Verify the url values 
+		curl -I http://stapp02:8080
+			HTTP/1.1 200 OK
+			Date: Mon, 31 Jan 2022 12:59:47 GMT
+			Server: Apache
+			Last-Modified: Thu, 30 Nov 2017 23:11:00 GMT
+			ETag: "1a4-55f3b5d810900"
+			Accept-Ranges: bytes
+			Content-Length: 420
+			Content-Type: text/html; charset=UTF-8
+
+		curl -I http://stapp02:8080/blog
+			HTTP/1.1 301 Moved Permanently
+			Date: Mon, 31 Jan 2022 12:59:56 GMT
+			Server: Apache
+			Location: http://stapp02:8080/blog/
+			Content-Type: text/html; charset=iso-8859-1
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 31 : 1/Feb/2022
+Linux LogRotate
+
+The Nautilus DevOps team is ready to launch a new application, which they will deploy on app servers in Stratos Datacenter. They are expecting significant traffic/usage of httpd on app servers after that. This will generate massive logs, creating huge log files. To utilise the storage efficiently, they need to compress the log files and need to rotate old logs. Check the requirements shared below:
+
+a. In all app servers install httpd package.
+
+b. Using logrotate configure httpd logs rotation to monthly and keep only 3 rotated logs.
+
+(If by default log rotation is set, then please update configuration as needed)
+
+
+		1.Login to App Server
+		ssh banner@stapp03
+		
+		2. Install httpd server
+		sudo yum install httpd -y
+
+		3.Make changes to logrotate config file for httpd
+		sudo vi /etc/logrotate.d/httpd
+			/var/log/httpd/*log {
+		    monthly
+		    rotate 3
+		    compress
+		    missingok
+		    notifempty
+		    sharedscripts
+		    postrotate
+		        /bin/systemctl reload httpd.service > /dev/null 2>/dev/null || true
+		    endscript
+			} 
+
+		4.Verfiy the logrotate configuration changes
+		cat /etc/logrotate.d/httpd 
+			/var/log/httpd/*log {
+			    monthly
+			    rotate 3
+			    compress
+			    missingok
+			    notifempty
+			    sharedscripts
+			    postrotate
+			        /bin/systemctl reload httpd.service > /dev/null 2>/dev/null || true
+			    endscript
+			}
+		
+		5. Start and verfiy/check status httpd server
+		sudo systemctl enable httpd
+		Created symlink from /etc/systemd/system/multi-user.target.wants/httpd.service to /usr/lib/systemd/system/httpd.service.
+
+		sudo systemctl start httpd
+
+		sudo systemctl status httpd
+			● httpd.service - The Apache HTTP Server
+			   Loaded: loaded (/usr/lib/systemd/system/httpd.service; enabled; vendor preset: disabled)
+			   Active: active (running) since Tue 2022-02-01 15:55:44 UTC; 7s ago
+			     Docs: man:httpd(8)
+			           man:apachectl(8)
+			 Main PID: 968 (httpd)
+			   Status: "Processing requests..."
+			   CGroup: /docker/b01d7bea1cb912be21402431f54ed0f7c1547cf68813ac5293f3bc44832bbaba/system.slice/httpd.service
+			           ├─968 /usr/sbin/httpd -DFOREGROUND
+			           ├─969 /usr/sbin/httpd -DFOREGROUND
+			           ├─970 /usr/sbin/httpd -DFOREGROUND
+			           ├─971 /usr/sbin/httpd -DFOREGROUND
+			           ├─972 /usr/sbin/httpd -DFOREGROUND
+			           └─973 /usr/sbin/httpd -DFOREGROUND
+
+			Feb 01 15:55:44 stapp03.stratos.xfusioncorp.com systemd[968]: Executing: /usr/sbin/httpd -DFOREGROUND
+			Feb 01 15:55:44 stapp03.stratos.xfusioncorp.com httpd[968]: AH00558: httpd: Could not reliably determine the server's fully qualifie...essage
+			Feb 01 15:55:44 stapp03.stratos.xfusioncorp.com systemd[1]: Got notification message for unit httpd.service
+			Feb 01 15:55:44 stapp03.stratos.xfusioncorp.com systemd[1]: httpd.service: Got notification message from PID 968 (READY=1, STATUS=Pr...D=968)
+			Feb 01 15:55:44 stapp03.stratos.xfusioncorp.com systemd[1]: httpd.service: got MAINPID=968
+			Feb 01 15:55:44 stapp03.stratos.xfusioncorp.com systemd[1]: httpd.service: got READY=1
+			Feb 01 15:55:44 stapp03.stratos.xfusioncorp.com systemd[1]: httpd.service changed start -> running
+			Feb 01 15:55:44 stapp03.stratos.xfusioncorp.com systemd[1]: Job httpd.service/start finished, result=done
+			Feb 01 15:55:44 stapp03.stratos.xfusioncorp.com systemd[1]: Started The Apache HTTP Server.
+			Feb 01 15:55:44 stapp03.stratos.xfusioncorp.com systemd[1]: httpd.service: got STATUS=Processing requests...
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 32:2/Feb/2022  <Under Review>
+Configure Local Yum repos
+The Nautilus production support team and security team had a meeting last month in which they decided to use local yum repositories for maintaing packages needed for their servers. For now they have decided to configure a local yum repo on Nautilus Backup Server. This is one of the pending items from last month, so please configure a local yum repository on Nautilus Backup Server as per details given below.
+
+a. We have some packages already present at location /packages/downloaded_rpms/ on Nautilus Backup Server.
+
+b. Create a yum repo named localyum and make sure to set Repository ID to localyum. Configure it to use package's location /packages/downloaded_rpms/.
+
+c. Install package samba from this newly created repo.
+
+	1. Login to Backup server
+	ssh clint@stbkp01
+
+	2. Verify packages for local repo seting up
+	cd /packages/downloaded_rpms/
+
+	ls -ahl
+			total 52M
+			drwxr-xr-x 1 root root 4.0K Jan 28  2020 .
+			drwxr-xr-x 1 root root 4.0K Jan 28  2020 ..
+			-rw-r--r-- 1 root root 104K Aug 22  2019 apr-1.4.8-5.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  92K Jul  4  2014 apr-util-1.5.2-6.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  62K Apr 25  2018 avahi-libs-0.6.31-19.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  22M Sep 30  2015 centos-logos-70.0.6-3.el7.centos.noarch.rpm
+			-rw-r--r-- 1 root root 358K Aug 22  2019 cups-libs-1.6.3-40.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  33K Aug 22  2019 gpm-libs-1.20.7-6.el7.x86_64.rpm
+			-rw-r--r-- 1 root root 942K Jul  4  2014 groff-base-1.22.2-8.el7.x86_64.rpm
+			-rw-r--r-- 1 root root 2.8M Aug 22  2019 httpd-2.4.6-90.el7.centos.x86_64.rpm
+			-rw-r--r-- 1 root root  91K Aug 22  2019 httpd-tools-2.4.6-90.el7.centos.x86_64.rpm
+			-rw-r--r-- 1 root root  37K Aug 10  2017 jansson-2.10-1.el7.x86_64.rpm
+			-rw-r--r-- 1 root root 144K Aug 22  2019 libldb-1.4.2-1.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  33K Aug 22  2019 libtalloc-2.1.14-1.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  49K Aug 22  2019 libtdb-1.3.16-1.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  40K Aug 22  2019 libtevent-0.9.37-1.el7.x86_64.rpm
+			-rw-r--r-- 1 root root 112K Dec  3  2019 libwbclient-4.9.1-10.el7_7.x86_64.rpm
+			-rw-r--r-- 1 root root  31K Jul  4  2014 mailcap-2.1.41-2.el7.noarch.rpm
+			-rw-r--r-- 1 root root 8.0M Jan 24  2019 perl-5.16.3-294.el7_6.x86_64.rpm
+			-rw-r--r-- 1 root root  20K Jul  4  2014 perl-Carp-1.26-244.el7.noarch.rpm
+			-rw-r--r-- 1 root root  19K Jul  4  2014 perl-constant-1.27-2.el7.noarch.rpm
+			-rw-r--r-- 1 root root 1.5M Jul  4  2014 perl-Encode-2.51-7.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  29K Jul  4  2014 perl-Exporter-5.68-3.el7.noarch.rpm
+			-rw-r--r-- 1 root root  27K Jul  4  2014 perl-File-Path-2.09-2.el7.noarch.rpm
+			-rw-r--r-- 1 root root  57K Jul  4  2014 perl-File-Temp-0.23.01-3.el7.noarch.rpm
+			-rw-r--r-- 1 root root  77K Jul  4  2014 perl-Filter-1.49-3.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  56K Apr 25  2018 perl-Getopt-Long-2.40-3.el7.noarch.rpm
+			-rw-r--r-- 1 root root  39K Jul  4  2014 perl-HTTP-Tiny-0.033-3.el7.noarch.rpm
+			-rw-r--r-- 1 root root 689K Jan 24  2019 perl-libs-5.16.3-294.el7_6.x86_64.rpm
+			-rw-r--r-- 1 root root  44K Jan 24  2019 perl-macros-5.16.3-294.el7_6.x86_64.rpm
+			-rw-r--r-- 1 root root  13K Jul  4  2014 perl-parent-0.225-244.el7.noarch.rpm
+			-rw-r--r-- 1 root root  83K Jul  4  2014 perl-PathTools-3.40-5.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  52K Jan 24  2019 perl-Pod-Escapes-1.04-294.el7_6.noarch.rpm
+			-rw-r--r-- 1 root root 112K Jul  4  2014 perl-podlators-2.5.1-3.el7.noarch.rpm
+			-rw-r--r-- 1 root root  87K Jul  4  2014 perl-Pod-Perldoc-3.20-4.el7.noarch.rpm
+			-rw-r--r-- 1 root root 217K Jul  4  2014 perl-Pod-Simple-3.28-4.el7.noarch.rpm
+			-rw-r--r-- 1 root root  27K Jul  4  2014 perl-Pod-Usage-1.63-3.el7.noarch.rpm
+			-rw-r--r-- 1 root root  36K Jul  4  2014 perl-Scalar-List-Utils-1.27-248.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  49K Nov 20  2016 perl-Socket-2.010-4.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  78K Jul  4  2014 perl-Storable-2.45-3.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  14K Jul  4  2014 perl-Text-ParseWords-3.29-4.el7.noarch.rpm
+			-rw-r--r-- 1 root root  50K Jul  4  2014 perl-threads-1.87-4.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  39K Jul  4  2014 perl-threads-shared-1.43-6.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  46K Jul  4  2014 perl-Time-HiRes-1.9725-3.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  25K Jul  4  2014 perl-Time-Local-1.2300-2.el7.noarch.rpm
+			-rw-r--r-- 1 root root  18K Aug 22  2019 pytalloc-2.1.14-1.el7.x86_64.rpm
+			drwxr-xr-x 2 root root 4.0K Jan 28  2020 repodata
+			-rw-r--r-- 1 root root 686K Dec  3  2019 samba-4.9.1-10.el7_7.x86_64.rpm
+			-rw-r--r-- 1 root root 5.0M Dec  3  2019 samba-client-libs-4.9.1-10.el7_7.x86_64.rpm
+			-rw-r--r-- 1 root root 210K Dec  3  2019 samba-common-4.9.1-10.el7_7.noarch.rpm
+			-rw-r--r-- 1 root root 171K Dec  3  2019 samba-common-libs-4.9.1-10.el7_7.x86_64.rpm
+			-rw-r--r-- 1 root root 456K Dec  3  2019 samba-common-tools-4.9.1-10.el7_7.x86_64.rpm
+			-rw-r--r-- 1 root root 261K Dec  3  2019 samba-libs-4.9.1-10.el7_7.x86_64.rpm
+			-rw-r--r-- 1 root root 6.0M Aug 22  2019 vim-common-7.4.629-6.el7.x86_64.rpm
+			-rw-r--r-- 1 root root 1.1M Aug 22  2019 vim-enhanced-7.4.629-6.el7.x86_64.rpm
+			-rw-r--r-- 1 root root  11K Aug 22  2019 vim-filesystem-7.4.629-6.el7.x86_64.rpm
+			-rw-r--r-- 1 root root 548K May 16  2019 wget-1.14-18.el7_6.1.x86_64.rpm
+			-rw-r--r-- 1 root root  41K Jul  4  2014 which-2.20-7.el7.x86_64.rpm
+
+	3. Login to Root for creating local repo configuration file
+	sudo su -
+
+	4. Verify repolist for any additional repo to download the package
+	#yum repolist
+		Loaded plugins: fastestmirror, ovl
+		Determining fastest mirrors
+		repolist: 0
+
+	5. Create local repo configuration file
+	# vi /etc/yum.repos.d/localyum.repo
+		[localyum]
+		name=localyum
+		baseurl=file:///packages/downloaded_rpms/
+		enabled = 1
+		gpgcheck = 0
+
+	6. Verify the repo configuration file
+	# cat /etc/yum.repos.d/localyum.repo
+		[localyum]
+		name=localyum
+		baseurl=file:///packages/downloaded_rpms/
+		enabled = 1
+		gpgcheck = 0
+
+	7. Verify repolist to check new local repo is included
+	# yum repolist
+		Loaded plugins: fastestmirror, ovl
+		Loading mirror speeds from cached hostfile
+		localyum                                                                                                              | 2.9 kB  00:00:00     
+		localyum/primary_db                                                                                                   |  57 kB  00:00:00     
+		repo id                                                            repo name                                                           status
+		localyum                                                           localyum                                                            55
+		repolist: 55
+
+	8. Install package samba from local repo
+	# yum install samba --enablerepo='localyum'
+			Loaded plugins: fastestmirror, ovl
+			Loading mirror speeds from cached hostfile
+			Resolving Dependencies
+			--> Running transaction check
+			---> Package samba.x86_64 0:4.9.1-10.el7_7 will be installed
+			--> Processing Dependency: samba-libs = 4.9.1-10.el7_7 for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: samba-common-tools = 4.9.1-10.el7_7 for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: samba-common-libs = 4.9.1-10.el7_7 for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: samba-common = 4.9.1-10.el7_7 for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: samba-common = 4.9.1-10.el7_7 for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: samba-client-libs = 4.9.1-10.el7_7 for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libwbclient = 4.9.1-10.el7_7 for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libxattr-tdb-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libutil-tdb-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libutil-reg-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libtevent.so.0(TEVENT_0.9.9)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libtevent.so.0(TEVENT_0.9.21)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libtevent.so.0(TEVENT_0.9.16)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libtevent-util.so.0(TEVENT_UTIL_0.0.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libtdb.so.1(TDB_1.2.5)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libtdb.so.1(TDB_1.2.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libtalloc.so.2(TALLOC_2.0.2)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsys-rw-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsocket-blocking-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsmbd-shim-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsmbd-base-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsmbconf.so.0(SMBCONF_0)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsmb-transport-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libserver-id-db-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsecrets3-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba3-util-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-util.so.0(SAMBA_UTIL_0.0.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-sockets-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-security-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-passdb.so.0(SAMBA_PASSDB_0.2.0)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-hostconfig.so.0(SAMBA_HOSTCONFIG_0.0.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-errors.so.1(SAMBA_ERRORS_1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-debug-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-cluster-support-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libreplace-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libpopt-samba3-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libndr.so.0(NDR_0.0.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libndr-standard.so.0(NDR_STANDARD_0.0.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libndr-samba-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libndr-nbt.so.0(NDR_NBT_0.0.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libmsghdr-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libmessages-dgm-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: liblibsmb-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libgse-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libgenrand-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libdbwrap-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libcmdline-contexts-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libcliauth-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libcli-smb-common-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libcli-nbt-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libcli-cldap-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libauth-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libCHARSET3-samba4.so(SAMBA_4.9.1)(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libxattr-tdb-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libutil-tdb-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libutil-reg-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libtevent.so.0()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libtevent-util.so.0()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libtdb.so.1()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libtalloc.so.2()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsys-rw-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsocket-blocking-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsmbd-shim-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsmbd-base-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsmbconf.so.0()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsmb-transport-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libserver-id-db-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsecrets3-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba3-util-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-util.so.0()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-sockets-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-security-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-passdb.so.0()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-hostconfig.so.0()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-errors.so.1()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-debug-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libsamba-cluster-support-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libreplace-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libpopt-samba3-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libndr.so.0()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libndr-standard.so.0()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libndr-samba-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libndr-nbt.so.0()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libmsghdr-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libmessages-dgm-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: liblibsmb-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libgse-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libgenrand-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libdbwrap-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libcmdline-contexts-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libcliauth-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libcli-smb-common-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libcli-nbt-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libcli-cldap-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libauth-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libCHARSET3-samba4.so()(64bit) for package: samba-4.9.1-10.el7_7.x86_64
+			--> Running transaction check
+			---> Package libtalloc.x86_64 0:2.1.14-1.el7 will be installed
+			---> Package libtdb.x86_64 0:1.3.16-1.el7 will be installed
+			---> Package libtevent.x86_64 0:0.9.37-1.el7 will be installed
+			---> Package libwbclient.x86_64 0:4.9.1-10.el7_7 will be installed
+			---> Package samba-client-libs.x86_64 0:4.9.1-10.el7_7 will be installed
+			--> Processing Dependency: libldb.so.1(LDB_1.3.0)(64bit) for package: samba-client-libs-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libldb.so.1(LDB_1.1.30)(64bit) for package: samba-client-libs-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libldb.so.1(LDB_1.1.19)(64bit) for package: samba-client-libs-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libldb.so.1(LDB_1.1.1)(64bit) for package: samba-client-libs-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libldb.so.1(LDB_0.9.23)(64bit) for package: samba-client-libs-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libldb.so.1(LDB_0.9.15)(64bit) for package: samba-client-libs-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libldb.so.1(LDB_0.9.10)(64bit) for package: samba-client-libs-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libldb.so.1()(64bit) for package: samba-client-libs-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libjansson.so.4()(64bit) for package: samba-client-libs-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libcups.so.2()(64bit) for package: samba-client-libs-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libavahi-common.so.3()(64bit) for package: samba-client-libs-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libavahi-client.so.3()(64bit) for package: samba-client-libs-4.9.1-10.el7_7.x86_64
+			---> Package samba-common.noarch 0:4.9.1-10.el7_7 will be installed
+			---> Package samba-common-libs.x86_64 0:4.9.1-10.el7_7 will be installed
+			---> Package samba-common-tools.x86_64 0:4.9.1-10.el7_7 will be installed
+			---> Package samba-libs.x86_64 0:4.9.1-10.el7_7 will be installed
+			--> Processing Dependency: libpytalloc-util.so.2(PYTALLOC_UTIL_2.1.9)(64bit) for package: samba-libs-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libpytalloc-util.so.2(PYTALLOC_UTIL_2.1.6)(64bit) for package: samba-libs-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libpytalloc-util.so.2(PYTALLOC_UTIL_2.0.6)(64bit) for package: samba-libs-4.9.1-10.el7_7.x86_64
+			--> Processing Dependency: libpytalloc-util.so.2()(64bit) for package: samba-libs-4.9.1-10.el7_7.x86_64
+			--> Running transaction check
+			---> Package avahi-libs.x86_64 0:0.6.31-19.el7 will be installed
+			---> Package cups-libs.x86_64 1:1.6.3-40.el7 will be installed
+			---> Package jansson.x86_64 0:2.10-1.el7 will be installed
+			---> Package libldb.x86_64 0:1.4.2-1.el7 will be installed
+			---> Package pytalloc.x86_64 0:2.1.14-1.el7 will be installed
+			--> Finished Dependency Resolution
+
+			Dependencies Resolved
+
+			=============================================================================================================================================
+			 Package                                 Arch                        Version                             Repository                     Size
+			=============================================================================================================================================
+			Installing:
+			 samba                                   x86_64                      4.9.1-10.el7_7                      localyum                      685 k
+			Installing for dependencies:
+			 avahi-libs                              x86_64                      0.6.31-19.el7                       localyum                       61 k
+			 cups-libs                               x86_64                      1:1.6.3-40.el7                      localyum                      358 k
+			 jansson                                 x86_64                      2.10-1.el7                          localyum                       37 k
+			 libldb                                  x86_64                      1.4.2-1.el7                         localyum                      144 k
+			 libtalloc                               x86_64                      2.1.14-1.el7                        localyum                       32 k
+			 libtdb                                  x86_64                      1.3.16-1.el7                        localyum                       48 k
+			 libtevent                               x86_64                      0.9.37-1.el7                        localyum                       40 k
+			 libwbclient                             x86_64                      4.9.1-10.el7_7                      localyum                      111 k
+			 pytalloc                                x86_64                      2.1.14-1.el7                        localyum                       17 k
+			 samba-client-libs                       x86_64                      4.9.1-10.el7_7                      localyum                      4.9 M
+			 samba-common                            noarch                      4.9.1-10.el7_7                      localyum                      210 k
+			 samba-common-libs                       x86_64                      4.9.1-10.el7_7                      localyum                      171 k
+			 samba-common-tools                      x86_64                      4.9.1-10.el7_7                      localyum                      456 k
+			 samba-libs                              x86_64                      4.9.1-10.el7_7                      localyum                      260 k
+
+			Transaction Summary
+			=============================================================================================================================================
+			Install  1 Package (+14 Dependent packages)
+
+			Total download size: 7.5 M
+			Installed size: 25 M
+			Is this ok [y/d/N]: y
+			Downloading packages:
+			---------------------------------------------------------------------------------------------------------------------------------------------
+			Total                                                                                                        242 MB/s | 7.5 MB  00:00:00     
+			Running transaction check
+			Running transaction test
+			Transaction test succeeded
+			Running transaction
+			  Installing : libtalloc-2.1.14-1.el7.x86_64                                                                                            1/15 
+			  Installing : libtdb-1.3.16-1.el7.x86_64                                                                                               2/15 
+			  Installing : libtevent-0.9.37-1.el7.x86_64                                                                                            3/15 
+			  Installing : samba-common-4.9.1-10.el7_7.noarch                                                                                       4/15 
+			  Installing : libldb-1.4.2-1.el7.x86_64                                                                                                5/15 
+			  Installing : avahi-libs-0.6.31-19.el7.x86_64                                                                                          6/15 
+			  Installing : 1:cups-libs-1.6.3-40.el7.x86_64                                                                                          7/15 
+			  Installing : pytalloc-2.1.14-1.el7.x86_64                                                                                             8/15 
+			  Installing : jansson-2.10-1.el7.x86_64                                                                                                9/15 
+			  Installing : libwbclient-4.9.1-10.el7_7.x86_64                                                                                       10/15 
+			  Installing : samba-common-libs-4.9.1-10.el7_7.x86_64                                                                                 11/15 
+			  Installing : samba-client-libs-4.9.1-10.el7_7.x86_64                                                                                 12/15 
+			  Installing : samba-libs-4.9.1-10.el7_7.x86_64                                                                                        13/15 
+			  Installing : samba-common-tools-4.9.1-10.el7_7.x86_64                                                                                14/15 
+			  Installing : samba-4.9.1-10.el7_7.x86_64                                                                                             15/15 
+			  Verifying  : samba-4.9.1-10.el7_7.x86_64                                                                                              1/15 
+			  Verifying  : samba-client-libs-4.9.1-10.el7_7.x86_64                                                                                  2/15 
+			  Verifying  : libtalloc-2.1.14-1.el7.x86_64                                                                                            3/15 
+			  Verifying  : pytalloc-2.1.14-1.el7.x86_64                                                                                             4/15 
+			  Verifying  : libtdb-1.3.16-1.el7.x86_64                                                                                               5/15 
+			  Verifying  : 1:cups-libs-1.6.3-40.el7.x86_64                                                                                          6/15 
+			  Verifying  : samba-libs-4.9.1-10.el7_7.x86_64                                                                                         7/15 
+			  Verifying  : libwbclient-4.9.1-10.el7_7.x86_64                                                                                        8/15 
+			  Verifying  : avahi-libs-0.6.31-19.el7.x86_64                                                                                          9/15 
+			  Verifying  : libldb-1.4.2-1.el7.x86_64                                                                                               10/15 
+			  Verifying  : samba-common-tools-4.9.1-10.el7_7.x86_64                                                                                11/15 
+			  Verifying  : libtevent-0.9.37-1.el7.x86_64                                                                                           12/15 
+			  Verifying  : samba-common-4.9.1-10.el7_7.noarch                                                                                      13/15 
+			  Verifying  : samba-common-libs-4.9.1-10.el7_7.x86_64                                                                                 14/15 
+			  Verifying  : jansson-2.10-1.el7.x86_64                                                                                               15/15 
+
+			Installed:
+			  samba.x86_64 0:4.9.1-10.el7_7                                                                                                              
+
+			Dependency Installed:
+			  avahi-libs.x86_64 0:0.6.31-19.el7                cups-libs.x86_64 1:1.6.3-40.el7            jansson.x86_64 0:2.10-1.el7                    
+			  libldb.x86_64 0:1.4.2-1.el7                      libtalloc.x86_64 0:2.1.14-1.el7            libtdb.x86_64 0:1.3.16-1.el7                   
+			  libtevent.x86_64 0:0.9.37-1.el7                  libwbclient.x86_64 0:4.9.1-10.el7_7        pytalloc.x86_64 0:2.1.14-1.el7                 
+			  samba-client-libs.x86_64 0:4.9.1-10.el7_7        samba-common.noarch 0:4.9.1-10.el7_7       samba-common-libs.x86_64 0:4.9.1-10.el7_7      
+			  samba-common-tools.x86_64 0:4.9.1-10.el7_7       samba-libs.x86_64 0:4.9.1-10.el7_7        
+
+			Complete!
+
+	9.Verify Samba installation
+	# yum list samba
+		Loaded plugins: fastestmirror, ovl
+		Loading mirror speeds from cached hostfile
+		Installed Packages
+		samba.x86_64 
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 33 : 4/Feb/2022
+Application Security
+
+We have a backup management application UI hosted on Nautilus's backup server in Stratos DC. That backup management application code is deployed under Apache on the backup server itself, and Nginx is running as a reverse proxy on the same server. Apache and Nginx ports are 8084 and 8097, respectively. We have iptables firewall installed on this server. Make the appropriate changes to fulfill the requirements mentioned below:
+
+We want to open all incoming connections to Nginx's port and block all incoming connections to Apache's port. Also make sure rules are permanent.
+
+		1. Login to Backup server and switch to root user
+		ssh clint@stbkp01
+
+		sudo su -
+
+		2. Verify iptables service status 
+		# systemctl status iptables
+			● iptables.service - IPv4 firewall with iptables
+			   Loaded: loaded (/usr/lib/systemd/system/iptables.service; disabled; vendor preset: disabled)
+			   Active: inactive (dead)
+
+		3. Verify Apache (http) and nginx running ports using netstat or ss 
+		# netstat -ntlp|grep http
+		   -bash: netstat: command not found
+
+		# ss -ntlp|grep http
+			LISTEN     0      511          *:8084                     *:*                   users:(("httpd",pid=640,fd=3),("httpd",pid=639,fd=3),("httpd",pid=638,fd=3),("httpd",pid=637,fd=3),("httpd",pid=636,fd=3),("httpd",pid=635,fd=3))
+
+		# ss -ntlp|grep nginx
+			LISTEN     0      511          *:8097                     *:*                   users:(("nginx",pid=693,fd=6),("nginx",pid=692,fd=6),("nginx",pid=691,fd=6),("nginx",pid=6	90,fd=6),("nginx",pid=689,fd=6),("nginx",pid=688,fd=6),("nginx",pid=687,fd=6),("nginx",pid=686,fd=6),("nginx",pid=685,fd=6),("nginx",pid=684,fd=6),("nginx",pid=683,fd=6),("nginx",pid=682,fd=6),("nginx",pid=681,fd=6),("nginx",pid=680,fd=6),("nginx",pid=679,fd=6),("nginx",pid=678,fd=6),("nginx",pid=677,fd=6),("nginx",pid=676,fd=6),("nginx",pid=675,fd=6),("nginx",pid=674,fd=6),("nginx",pid=673,fd=6),("nginx",pid=672,fd=6),("nginx",pid=671,fd=6),("nginx",pid=670,fd=6),("nginx",pid=669,fd=6),("nginx",pid=668,fd=6),("nginx",pid=667,fd=6),("nginx",pid=666,fd=6),("nginx",pid=665,fd=6),("nginx",pid=664,fd=6),("nginx",pid=663,fd=6),("nginx",pid=662,fd=6),("nginx",pid=661,fd=6),("nginx",pid=660,fd=6),("nginx",pid=659,fd=6),("nginx",pid=658,fd=6),("nginx",pid=657,fd=6))
+
+		4. Start iptables service and check status
+		# systemctl start iptables
+
+		# systemctl status iptables
+			● iptables.service - IPv4 firewall with iptables
+			   Loaded: loaded (/usr/lib/systemd/system/iptables.service; disabled; vendor preset: disabled)
+			   Active: active (exited) since Fri 2022-02-04 13:37:13 UTC; 7s ago
+			  Process: 778 ExecStart=/usr/libexec/iptables/iptables.init start (code=exited, status=0/SUCCESS)
+			 Main PID: 778 (code=exited, status=0/SUCCESS)
+
+			Feb 04 13:37:13 stbkp01.stratos.xfusioncorp.com systemd[1]: iptables.service changed dead -> start
+			Feb 04 13:37:13 stbkp01.stratos.xfusioncorp.com systemd[1]: Starting IPv4 firewall with iptables...
+			Feb 04 13:37:13 stbkp01.stratos.xfusioncorp.com systemd[778]: Executing: /usr/libexec/iptables/iptables.init start
+			Feb 04 13:37:13 stbkp01.stratos.xfusioncorp.com iptables.init[778]: iptables: Applying firewall rules: [  OK  ]
+			Feb 04 13:37:13 stbkp01.stratos.xfusioncorp.com systemd[1]: Child 778 belongs to iptables.service
+			Feb 04 13:37:13 stbkp01.stratos.xfusioncorp.com systemd[1]: iptables.service: main process exited, code=exited, status=0/SUCCESS
+			Feb 04 13:37:13 stbkp01.stratos.xfusioncorp.com systemd[1]: iptables.service changed start -> exited
+			Feb 04 13:37:13 stbkp01.stratos.xfusioncorp.com systemd[1]: Job iptables.service/start finished, result=done
+			Feb 04 13:37:13 stbkp01.stratos.xfusioncorp.com systemd[1]: Started IPv4 firewall with iptables.
+			Feb 04 13:37:13 stbkp01.stratos.xfusioncorp.com systemd[1]: iptables.service: cgroup is empty
+
+		5. Set rule for nginx on port 8097 to accept all incoming tcp connection
+		# iptables -A INPUT -p tcp --dport 8097 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+
+		6. Set rule for http on port 8084 to reject all incoming tcp connection 
+		# iptables -A INPUT -p tcp --dport 8084 -m conntrack --ctstate NEW -j REJECT
+
+		7. iptables has Rule 5 which Rejects all TCP request and changes it to ICMP 
+		# iptables -L --line-numbers
+			Chain INPUT (policy ACCEPT)
+			num  target     prot opt source               destination         
+			1    ACCEPT     all  --  anywhere             anywhere             state RELATED,ESTABLISHED
+			2    ACCEPT     icmp --  anywhere             anywhere            
+			3    ACCEPT     all  --  anywhere             anywhere            
+			4    ACCEPT     tcp  --  anywhere             anywhere             state NEW tcp dpt:ssh
+		-->	5    REJECT     all  --  anywhere             anywhere             reject-with icmp-host-prohibited
+			6    ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:sac ctstate NEW,ESTABLISHED
+			7    REJECT     tcp  --  anywhere             anywhere             tcp dpt:8084 ctstate NEW reject-with icmp-port-unreachable
+
+			Chain FORWARD (policy ACCEPT)
+			num  target     prot opt source               destination         
+			1    REJECT     all  --  anywhere             anywhere             reject-with icmp-host-prohibited
+
+			Chain OUTPUT (policy ACCEPT)
+			num  target     prot opt source               destination         
+
+		8. Change that Rule to reject only ICMP port requests and verfiy changes
+		#  iptables -R INPUT 5 -p icmp -j REJECT
+
+		# iptables -L --line-numbers
+			Chain INPUT (policy ACCEPT)
+			num  target     prot opt source               destination         
+			1    ACCEPT     all  --  anywhere             anywhere             state RELATED,ESTABLISHED
+			2    ACCEPT     icmp --  anywhere             anywhere            
+			3    ACCEPT     all  --  anywhere             anywhere            
+			4    ACCEPT     tcp  --  anywhere             anywhere             state NEW tcp dpt:ssh
+		-->	5    REJECT     icmp --  anywhere             anywhere             reject-with icmp-port-unreachable
+			6    ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:sac ctstate NEW,ESTABLISHED
+			7    REJECT     tcp  --  anywhere             anywhere             tcp dpt:8084 ctstate NEW reject-with icmp-port-unreachable
+
+			Chain FORWARD (policy ACCEPT)
+			num  target     prot opt source               destination         
+			1    REJECT     all  --  anywhere             anywhere             reject-with icmp-host-prohibited
+
+			Chain OUTPUT (policy ACCEPT)
+			num  target     prot opt source               destination         
+
+		9. Permanently save the changes.
+		# service iptables save
+			iptables: Saving firewall rules to /etc/sysconfig/iptables:[  OK  ]
+
+
+		10. Try to access backup server from jump host on mentioned ports 
+
+			thor@jump_host ~$ telnet stbkp01 8084
+			Trying 172.16.238.16...
+			telnet: connect to address 172.16.238.16: Connection refused
+
+			thor@jump_host ~$ telnet stbkp01 8097
+			Trying 172.16.238.16...
+			Connected to stbkp01.
+			Escape character is '^]'.
+			^
+			HTTP/1.1 400 Bad Request
+			Server: nginx/1.16.1
+			Date: Fri, 04 Feb 2022 13:41:12 GMT
+			Content-Type: text/html
+			Content-Length: 157
+			Connection: close
+
+			<html>
+			<head><title>400 Bad Request</title></head>
+			<body>
+			<center><h1>400 Bad Request</h1></center>
+			<hr><center>nginx/1.16.1</center>
+			</body>
+			</html>
+			Connection closed by foreign host.
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 34 : 6/Feb/2022
+Linux Postfix Mail Server
+xFusionCorp Industries has planned to set up a common email server in Stork DC. After several meetings and recommendations they have decided to use postfix as their mail transfer agent and dovecot as an IMAP/POP3 server. We would like you to perform the following steps:
+
+    Install and configure postfix on Stork DC mail server.
+
+    Create an email account ravi@stratos.xfusioncorp.com identified by ksH85UJjhb.
+
+    Set its mail directory to /home/ravi/Maildir.
+
+    Install and configure dovecot on the same server.
+
+
+		1. Login to mail server and switch to root
+		ssh groot@stmail01
+
+		sudo su - 
+
+		2. Install Postfix mail transfer agent
+		# yum install postfix -y
+
+		3. Edit the postfix config file with following vallues corresponding to given line number
+		# vi /etc/postfix/main.cf
+
+			:set nu 
+
+			76 myhostname = stmail01.stratos.xfusioncorp.com
+
+			83 mydomain = stratos.xfusioncorp.com
+
+			99 myorigin = $mydomain
+
+			113 inet_interfaces = all        <Uncomment it>
+			116 #inet_interfaces = localhost <Comment it>
+
+			164 #mydestination = $myhostname, localhost.$mydomain, localhost <comment it>
+			165 mydestination = $myhostname, localhost.$mydomain, localhost , $mydomain <Uncomment it>
+
+			264 mynetworks = 172.16.238.0/24, 127.0.0.0/8
+
+			419 home_mailbox = Maildir/
+
+		4. Start and check status of Postfix service
+		# systemctl start postfix
+
+		# systemctl status postfix
+
+		5. Create user with given passwd and check home directory
+		# useradd ravi
+		
+		# passwd ravi 
+			<Provide password ksH85UJjhb>
+		
+		# cat /etc/passwd|grep ravi
+		
+		# cd /home/ravi
+		
+		# ls -ahl
+
+		6. Telnet to mail server to send a mail and verify postfix configuration
+
+		# telnet stmail01 25
+			Trying 172.16.238.17...
+			Connected to stmail01.
+			Escape character is '^]'.
+			220 stmail01.stratos.xfusioncorp.com ESMTP Postfix
+
+		EHLO localhost
+			250-stmail01.stratos.xfusioncorp.com
+			250-PIPELINING
+			250-SIZE 10240000
+			250-VRFY
+			250-ETRN
+			250-ENHANCEDSTATUSCODES
+			250-8BITMIME
+			250 DSN
+
+		mail from:ravi@stratos.xfusioncorp.com
+			250 2.1.0 Ok
+
+		rcpt to:ravi@stratos.xfusioncorp.com
+			250 2.1.5 Ok
+		DATA
+			354 End data with <CR><LF>.<CR><LF>
+			This is a test mail
+			.
+			250 2.0.0 Ok: queued as 36D0714F2722
+
+		quit
+			221 2.0.0 Bye
+			Connection closed by foreign host.
+
+		7. Check mail queue
+		# mailq
+
+		8. Login to ravi to check if mail delievered
+		# su - ravi
+
+		[ravi@stmail01 ~]$ mailq
+			Mail queue is empty
+		 
+		[ravi@stmail01 ~]$ cd /home/ravi/
+
+		[ravi@stmail01 ~]$ ls -ahl
+			total 28K
+			drwx------ 3 ravi ravi 4.0K Feb  5 23:05 .
+			drwxr-xr-x 1 root root 4.0K Feb  5 23:03 ..
+			-rw-r--r-- 1 ravi ravi   18 Oct 30  2018 .bash_logout
+			-rw-r--r-- 1 ravi ravi  193 Oct 30  2018 .bash_profile
+			-rw-r--r-- 1 ravi ravi  231 Oct 30  2018 .bashrc
+			drwx------ 5 ravi ravi 4.0K Feb  5 23:05 Maildir
+
+		[ravi@stmail01 ~]$ cd Maildir/
+		 
+		[ravi@stmail01 Maildir]$ ls -ahl
+			total 20K
+			drwx------ 5 ravi ravi 4.0K Feb  5 23:05 .
+			drwx------ 3 ravi ravi 4.0K Feb  5 23:05 ..
+			drwx------ 2 ravi ravi 4.0K Feb  5 23:05 cur
+			drwx------ 2 ravi ravi 4.0K Feb  5 23:05 new
+			drwx------ 2 ravi ravi 4.0K Feb  5 23:05 tmp
+		[ravi@stmail01 Maildir]$ cat new/1644102358.V801I152e043M601896.stmail01.stratos.xfusioncorp.com 
+			Return-Path: <ravi@stratos.xfusioncorp.com>
+			X-Original-To: ravi@stratos.xfusioncorp.com
+			Delivered-To: ravi@stratos.xfusioncorp.com
+			Received: from localhost (stmail01 [172.16.238.17])
+			        by stmail01.stratos.xfusioncorp.com (Postfix) with ESMTP id 36D0714F2722
+			        for <ravi@stratos.xfusioncorp.com>; Sat,  5 Feb 2022 23:05:28 +0000 (UTC)
+			Message-Id: <20220205230544.36D0714F2722@stmail01.stratos.xfusioncorp.com>
+			Date: Sat,  5 Feb 2022 23:05:28 +0000 (UTC)
+			From: ravi@stratos.xfusioncorp.com
+
+			This is a test mail
+		 
+		[ravi@stmail01 Maildir]$ exit
+			logout
+
+		9. Install Dovecot mail server 
+		# yum install dovecot -y
+
+		10. Edit the Dovecot config files with following vallues corresponding to given line number
+		# vi /etc/dovecot/dovecot.conf
+			
+			:set nu
+
+			24 protocols = imap pop3 lmtp <Uncomment it>
+
+		# vi /etc/dovecot/conf.d/10-mail.conf
+
+			:set nu
+
+			24 mail_location = maildir:~/Maildir <Uncommnet it>
+
+		# vi /etc/dovecot/conf.d/10-auth.conf
+			
+			:set nu
+
+			10 disable_plaintext_auth = yes <Uncomment it>
+
+			100 auth_mechanisms = plain login
+
+		# vi /etc/dovecot/conf.d/10-master.conf
+			
+			:set nu
+
+			91 user = postfix
+			92 group = postfix
+
+		11. Start and check status of Dovecot server
+		# systemctl start dovecot
+
+		# systemctl status dovecot
+
+		12. Exit root user
+		# exit
+			logout
+
+		13. Telnet to mail server on Dovecot port to login to mail server and verify dovecot mails
+		[groot@stmail01 ~]$ telnet stmail01 110
+			Trying 172.16.238.17...
+			Connected to stmail01.
+			Escape character is '^]'.
+			+OK Dovecot ready.
+
+		user ravi
+			+OK
+
+		pass ksH85UJjhb
+			+OK Logged in.
+
+		retr 1
+			+OK 518 octets
+			Return-Path: <ravi@stratos.xfusioncorp.com>
+			X-Original-To: ravi@stratos.xfusioncorp.com
+			Delivered-To: ravi@stratos.xfusioncorp.com
+			Received: from localhost (stmail01 [172.16.238.17])
+			        by stmail01.stratos.xfusioncorp.com (Postfix) with ESMTP id 36D0714F2722
+			        for <ravi@stratos.xfusioncorp.com>; Sat,  5 Feb 2022 23:05:28 +0000 (UTC)
+			Message-Id: <20220205230544.36D0714F2722@stmail01.stratos.xfusioncorp.com>
+			Date: Sat,  5 Feb 2022 23:05:28 +0000 (UTC)
+			From: ravi@stratos.xfusioncorp.com
+
+			This is a test mail
+			.
+
+		quit
+			+OK Logging out.
+			Connection closed by foreign host.
+
+		14. Verify Dovecot socket/ports open and running
+		[groot@stmail01 ~]$ ss -tulnp
+			Netid State      Recv-Q Send-Q                       Local Address:Port                                      Peer Address:Port              
+			udp   UNCONN     0      0                               127.0.0.11:38437                                                *:*                  
+			tcp   LISTEN     0      100                                      *:110                                                  *:*                  
+			tcp   LISTEN     0      100                                      *:143                                                  *:*                  
+			tcp   LISTEN     0      4096                            127.0.0.11:38225                                                *:*                  
+			tcp   LISTEN     0      128                                      *:22                                                   *:*                  
+			tcp   LISTEN     0      100                                      *:25                                                   *:*                  
+			tcp   LISTEN     0      100                                      *:993                                                  *:*                  
+			tcp   LISTEN     0      100                                      *:995                                                  *:*                  
+			tcp   LISTEN     0      100                                   [::]:110                                               [::]:*                  
+			tcp   LISTEN     0      100                                   [::]:143                                               [::]:*                  
+			tcp   LISTEN     0      128                                   [::]:22                                                [::]:*                  
+			tcp   LISTEN     0      100                                   [::]:25                                                [::]:*                  
+			tcp   LISTEN     0      100                                   [::]:993                                               [::]:*                  
+			tcp   LISTEN     0      100                                   [::]:995                                               [::]:*                  
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 35 : 
+ IPtables Installation And Configuration
+
+We have one of our websites up and running on our Nautilus infrastructure in Stratos DC. Our security team has raised a concern that right now Apache’s port i.e 3000 is open for all since there is no firewall installed on these hosts. So we have decided to add some security layer for these hosts and after discussions and recommendations we have come up with the following requirements:
+
+    Install iptables and all its dependencies on each app host.
+
+    Block incoming port 3000 on all apps for everyone except for LBR host.
+
+    Make sure the rules remain, even after system reboot.
+
+
+		1. Login to App server and switch to root
+		ssh banner@stapp03
+
+		sudo su -
+
+		2. Check if iptables is running
+		# systemctl status iptables
+
+		3. Install iptables and iptables-services
+		# yum install -y iptables-services
+			Loaded plugins: fastestmirror, ovl
+			Determining fastest mirrors
+			epel/x86_64/metalink                                                                                                  |  18 kB  00:00:00     
+			 * base: mirror.umd.edu
+			 * epel: mirror.genesisadaptive.com
+			 * extras: mirrors.lug.mtu.edu
+			 * remi-php72: mirror.team-cymru.com
+			 * remi-safe: mirror.team-cymru.com
+			 * updates: centos.mirror.lstn.net
+			base                                                                                                                  | 3.6 kB  00:00:00     
+			epel                                                                                                                  | 4.7 kB  00:00:00     
+			extras                                                                                                                | 2.9 kB  00:00:00     
+			remi-php72                                                                                                            | 3.0 kB  00:00:00     
+			remi-safe                                                                                                             | 3.0 kB  00:00:00     
+			updates                                                                                                               | 2.9 kB  00:00:00     
+			(1/9): base/7/x86_64/group_gz                                                                                         | 153 kB  00:00:00     
+			(2/9): extras/7/x86_64/primary_db                                                                                     | 243 kB  00:00:00     
+			(3/9): epel/x86_64/group_gz                                                                                           |  96 kB  00:00:00     
+			(4/9): epel/x86_64/updateinfo                                                                                         | 1.0 MB  00:00:00     
+			(5/9): remi-php72/primary_db                                                                                          | 261 kB  00:00:00     
+			(6/9): epel/x86_64/primary_db                                                                                         | 7.0 MB  00:00:00     
+			(7/9): remi-safe/primary_db                                                                                           | 2.1 MB  00:00:00     
+			(8/9): updates/7/x86_64/primary_db                                                                                    |  13 MB  00:00:00     
+			(9/9): base/7/x86_64/primary_db                                                                                       | 6.1 MB  00:00:01     
+			Resolving Dependencies
+			--> Running transaction check
+			---> Package iptables-services.x86_64 0:1.4.21-35.el7 will be installed
+			--> Processing Dependency: iptables = 1.4.21-35.el7 for package: iptables-services-1.4.21-35.el7.x86_64
+			--> Running transaction check
+			---> Package iptables.x86_64 0:1.4.21-33.el7 will be updated
+			---> Package iptables.x86_64 0:1.4.21-35.el7 will be an update
+			--> Finished Dependency Resolution
+
+			Dependencies Resolved
+
+			=============================================================================================================================================
+			 Package                                 Arch                         Version                               Repository                  Size
+			=============================================================================================================================================
+			Installing:
+			 iptables-services                       x86_64                       1.4.21-35.el7                         base                        52 k
+			Updating for dependencies:
+			 iptables                                x86_64                       1.4.21-35.el7                         base                       432 k
+
+			Transaction Summary
+			=============================================================================================================================================
+			Install  1 Package
+			Upgrade             ( 1 Dependent package)
+
+			Total download size: 485 k
+			Downloading packages:
+			Delta RPMs disabled because /usr/bin/applydeltarpm not installed.
+			(1/2): iptables-services-1.4.21-35.el7.x86_64.rpm                                                                     |  52 kB  00:00:00     
+			(2/2): iptables-1.4.21-35.el7.x86_64.rpm                                                                              | 432 kB  00:00:00     
+			---------------------------------------------------------------------------------------------------------------------------------------------
+			Total                                                                                                        821 kB/s | 485 kB  00:00:00     
+			Running transaction check
+			Running transaction test
+			Transaction test succeeded
+			Running transaction
+			  Updating   : iptables-1.4.21-35.el7.x86_64                                                                                             1/3 
+			  Installing : iptables-services-1.4.21-35.el7.x86_64                                                                                    2/3 
+			  Cleanup    : iptables-1.4.21-33.el7.x86_64                                                                                             3/3 
+			  Verifying  : iptables-services-1.4.21-35.el7.x86_64                                                                                    1/3 
+			  Verifying  : iptables-1.4.21-35.el7.x86_64                                                                                             2/3 
+			  Verifying  : iptables-1.4.21-33.el7.x86_64                                                                                             3/3 
+
+			Installed:
+			  iptables-services.x86_64 0:1.4.21-35.el7                                                                                                   
+
+			Dependency Updated:
+			  iptables.x86_64 0:1.4.21-35.el7                                                                                                            
+
+			Complete!
+
+		4.Start , enable and check status of iptables services
+		# systemctl start iptables
+
+		# systemctl enable iptables
+			Created symlink from /etc/systemd/system/basic.target.wants/iptables.service to /usr/lib/systemd/system/iptables.service.
+
+		# systemctl status iptables
+			● iptables.service - IPv4 firewall with iptables
+			   Loaded: loaded (/usr/lib/systemd/system/iptables.service; enabled; vendor preset: disabled)
+			   Active: active (exited) since Mon 2022-02-07 08:34:15 UTC; 21s ago
+			 Main PID: 1196 (code=exited, status=0/SUCCESS)
+
+			Feb 07 08:34:15 stapp03.stratos.xfusioncorp.com systemd[1]: Starting IPv4 firewall with iptables...
+			Feb 07 08:34:15 stapp03.stratos.xfusioncorp.com iptables.init[1196]: iptables: Applying firewall rules: [  OK  ]
+			Feb 07 08:34:15 stapp03.stratos.xfusioncorp.com systemd[1]: Started IPv4 firewall with iptables.
+		
+		5. Check iptables
+		# iptables -L --line-numbers
+			Chain INPUT (policy ACCEPT)
+			num  target     prot opt source               destination         
+			1    ACCEPT     all  --  anywhere             anywhere             state RELATED,ESTABLISHED
+			2    ACCEPT     icmp --  anywhere             anywhere            
+			3    ACCEPT     all  --  anywhere             anywhere            
+			4    ACCEPT     tcp  --  anywhere             anywhere             state NEW tcp dpt:ssh
+			5    REJECT     all  --  anywhere             anywhere             reject-with icmp-host-prohibited
+			6    ACCEPT     tcp  --  stlb01               anywhere             tcp dpt:hbci
+			7    DROP       tcp  --  anywhere             anywhere             tcp dpt:hbci
+
+			Chain FORWARD (policy ACCEPT)
+			num  target     prot opt source               destination         
+			1    REJECT     all  --  anywhere             anywhere             reject-with icmp-host-prohibited
+
+			Chain OUTPUT (policy ACCEPT)
+			num  target     prot opt source               destination 
+
+		6. Set Iptables rules  to allow tcp connection from load balancer , and block all other tcp connections on mentioned port
+		# iptables -A INPUT -p tcp --destination-port 3000 -s 172.16.238.14 -j ACCEPT
+
+		# iptables -A INPUT -p tcp --destination-port 3000 -j DROP
+
+		7. Change that Rule to reject only ICMP port requests and verfiy changes
+		#  iptables -R INPUT 5 -p icmp -j REJECT
+
+		# iptables -L --line-numbers
+			Chain INPUT (policy ACCEPT)
+			num  target     prot opt source               destination         
+			1    ACCEPT     all  --  anywhere             anywhere             state RELATED,ESTABLISHED
+			2    ACCEPT     icmp --  anywhere             anywhere            
+			3    ACCEPT     all  --  anywhere             anywhere            
+			4    ACCEPT     tcp  --  anywhere             anywhere             state NEW tcp dpt:ssh
+		-->	5    REJECT     icmp --  anywhere             anywhere             reject-with icmp-port-unreachable
+			6    ACCEPT     tcp  --  anywhere             anywhere             tcp dpt:sac ctstate NEW,ESTABLISHED
+			7    REJECT     tcp  --  anywhere             anywhere             tcp dpt:8084 ctstate NEW reject-with icmp-port-unreachable
+
+			Chain FORWARD (policy ACCEPT)
+			num  target     prot opt source               destination         
+			1    REJECT     all  --  anywhere             anywhere             reject-with icmp-host-prohibited
+
+			Chain OUTPUT (policy ACCEPT)
+			num  target     prot opt source               destination         
+
+		9. Permanently save the changes.
+		# service iptables save
+			iptables: Saving firewall rules to /etc/sysconfig/iptables:[  OK  ]
+
+		10. Restart and check status of iptables
+		# systemctl restart iptables
+
+		# systemctl status iptables
+			● iptables.service - IPv4 firewall with iptables
+			   Loaded: loaded (/usr/lib/systemd/system/iptables.service; enabled; vendor preset: disabled)
+			   Active: active (exited) since Mon 2022-02-07 08:35:39 UTC; 8s ago
+			  Process: 1469 ExecStop=/usr/libexec/iptables/iptables.init stop (code=exited, status=0/SUCCESS)
+			  Process: 1491 ExecStart=/usr/libexec/iptables/iptables.init start (code=exited, status=0/SUCCESS)
+			 Main PID: 1491 (code=exited, status=0/SUCCESS)
+
+			Feb 07 08:35:39 stapp03.stratos.xfusioncorp.com systemd[1]: Starting IPv4 firewall with iptables...
+			Feb 07 08:35:39 stapp03.stratos.xfusioncorp.com iptables.init[1491]: iptables: Applying firewall rules: [  OK  ]
+			Feb 07 08:35:39 stapp03.stratos.xfusioncorp.com systemd[1]: Started IPv4 firewall with iptables.
+
+		11.Verify by curl on each app server from load balancer
+		ssh loki@stlb01
+
+		curl http://stapp03:3000
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 36 : 8/Feb/2022
+Install and Configure PostgreSQL
+The Nautilus application development team has shared that they are planning to deploy one newly developed application on Nautilus infra in Stratos DC. The application uses PostgreSQL database, so as a pre-requisite we need to set up PostgreSQL database server as per requirements shared below:
+
+a. Install and configure PostgreSQL database on Nautilus database server.
+
+b. Create a database user kodekloud_cap and set its password to YchZHRcLkL.
+
+c. Create a database kodekloud_db4 and grant full permissions to user kodekloud_cap on this database.
+
+d. Make appropriate settings to allow all local clients (local socket connections) to connect to the kodekloud_db4 database through kodekloud_cap user using md5 method (Please do not try to encrypt password with md5sum).
+
+e. At the end its good to test the db connection using these new credentials from root user or server's sudo user.
+
+		1. Login to db server and switch to root
+		ssh peter@stdb01
+
+		sudo su - 
+
+		2. Install Postgresql Server 
+		# yum install postgresql-server postgresql-contrib -y
+			Loaded plugins: fastestmirror, ovl
+			Determining fastest mirrors
+			 * base: mirrors.lug.mtu.edu
+			 * extras: mirrors.lug.mtu.edu
+			 * updates: mirror.pit.teraswitch.com
+			base                                                                                                                  | 3.6 kB  00:00:00     
+			extras                                                                                                                | 2.9 kB  00:00:00     
+			updates                                                                                                               | 2.9 kB  00:00:00     
+			(1/4): extras/7/x86_64/primary_db                                                                                     | 243 kB  00:00:00     
+			(2/4): base/7/x86_64/group_gz                                                                                         | 153 kB  00:00:00     
+			(3/4): base/7/x86_64/primary_db                                                                                       | 6.1 MB  00:00:00     
+			(4/4): updates/7/x86_64/primary_db                                                                                    |  13 MB  00:00:01     
+			Resolving Dependencies
+			--> Running transaction check
+			---> Package postgresql-contrib.x86_64 0:9.2.24-7.el7_9 will be installed
+			--> Processing Dependency: postgresql-libs(x86-64) = 9.2.24-7.el7_9 for package: postgresql-contrib-9.2.24-7.el7_9.x86_64
+			--> Processing Dependency: postgresql(x86-64) = 9.2.24-7.el7_9 for package: postgresql-contrib-9.2.24-7.el7_9.x86_64
+			--> Processing Dependency: libxslt.so.1(LIBXML2_1.0.22)(64bit) for package: postgresql-contrib-9.2.24-7.el7_9.x86_64
+			--> Processing Dependency: libxslt.so.1(LIBXML2_1.0.18)(64bit) for package: postgresql-contrib-9.2.24-7.el7_9.x86_64
+			--> Processing Dependency: libxslt.so.1(LIBXML2_1.0.11)(64bit) for package: postgresql-contrib-9.2.24-7.el7_9.x86_64
+			--> Processing Dependency: libxslt.so.1()(64bit) for package: postgresql-contrib-9.2.24-7.el7_9.x86_64
+			--> Processing Dependency: libpq.so.5()(64bit) for package: postgresql-contrib-9.2.24-7.el7_9.x86_64
+			--> Processing Dependency: libossp-uuid.so.16()(64bit) for package: postgresql-contrib-9.2.24-7.el7_9.x86_64
+			---> Package postgresql-server.x86_64 0:9.2.24-7.el7_9 will be installed
+			--> Processing Dependency: systemd-sysv for package: postgresql-server-9.2.24-7.el7_9.x86_64
+			--> Running transaction check
+			---> Package libxslt.x86_64 0:1.1.28-6.el7 will be installed
+			---> Package postgresql.x86_64 0:9.2.24-7.el7_9 will be installed
+			---> Package postgresql-libs.x86_64 0:9.2.24-7.el7_9 will be installed
+			---> Package systemd-sysv.x86_64 0:219-78.el7_9.5 will be installed
+			--> Processing Dependency: systemd = 219-78.el7_9.5 for package: systemd-sysv-219-78.el7_9.5.x86_64
+			---> Package uuid.x86_64 0:1.6.2-26.el7 will be installed
+			--> Running transaction check
+			---> Package systemd.x86_64 0:219-62.el7_6.9 will be updated
+			---> Package systemd.x86_64 0:219-78.el7_9.5 will be an update
+			--> Processing Dependency: systemd-libs = 219-78.el7_9.5 for package: systemd-219-78.el7_9.5.x86_64
+			--> Running transaction check
+			---> Package systemd-libs.x86_64 0:219-62.el7_6.9 will be updated
+			---> Package systemd-libs.x86_64 0:219-78.el7_9.5 will be an update
+			--> Finished Dependency Resolution
+
+			Dependencies Resolved
+
+			=============================================================================================================================================
+			 Package                                 Arch                        Version                              Repository                    Size
+			=============================================================================================================================================
+			Installing:
+			 postgresql-contrib                      x86_64                      9.2.24-7.el7_9                       updates                      553 k
+			 postgresql-server                       x86_64                      9.2.24-7.el7_9                       updates                      3.8 M
+			Installing for dependencies:
+			 libxslt                                 x86_64                      1.1.28-6.el7                         base                         242 k
+			 postgresql                              x86_64                      9.2.24-7.el7_9                       updates                      3.0 M
+			 postgresql-libs                         x86_64                      9.2.24-7.el7_9                       updates                      235 k
+			 systemd-sysv                            x86_64                      219-78.el7_9.5                       updates                       97 k
+			 uuid                                    x86_64                      1.6.2-26.el7                         base                          55 k
+			Updating for dependencies:
+			 systemd                                 x86_64                      219-78.el7_9.5                       updates                      5.1 M
+			 systemd-libs                            x86_64                      219-78.el7_9.5                       updates                      419 k
+
+			Transaction Summary
+			=============================================================================================================================================
+			Install  2 Packages (+5 Dependent packages)
+			Upgrade             ( 2 Dependent packages)
+
+			Total download size: 13 M
+			Downloading packages:
+			Delta RPMs disabled because /usr/bin/applydeltarpm not installed.
+			(1/9): libxslt-1.1.28-6.el7.x86_64.rpm                                                                                | 242 kB  00:00:00     
+			(2/9): postgresql-contrib-9.2.24-7.el7_9.x86_64.rpm                                                                   | 553 kB  00:00:00     
+			(3/9): postgresql-libs-9.2.24-7.el7_9.x86_64.rpm                                                                      | 235 kB  00:00:00     
+			(4/9): postgresql-9.2.24-7.el7_9.x86_64.rpm                                                                           | 3.0 MB  00:00:00     
+			(5/9): postgresql-server-9.2.24-7.el7_9.x86_64.rpm                                                                    | 3.8 MB  00:00:00     
+			(6/9): systemd-219-78.el7_9.5.x86_64.rpm                                                                              | 5.1 MB  00:00:00     
+			(7/9): systemd-libs-219-78.el7_9.5.x86_64.rpm                                                                         | 419 kB  00:00:00     
+			(8/9): systemd-sysv-219-78.el7_9.5.x86_64.rpm                                                                         |  97 kB  00:00:00     
+			(9/9): uuid-1.6.2-26.el7.x86_64.rpm                                                                                   |  55 kB  00:00:00     
+			---------------------------------------------------------------------------------------------------------------------------------------------
+			Total                                                                                                        7.5 MB/s |  13 MB  00:00:01     
+			Running transaction check
+			Running transaction test
+			Transaction test succeeded
+			Running transaction
+			  Installing : postgresql-libs-9.2.24-7.el7_9.x86_64                                                                                    1/11 
+			  Installing : postgresql-9.2.24-7.el7_9.x86_64                                                                                         2/11 
+			  Updating   : systemd-libs-219-78.el7_9.5.x86_64                                                                                       3/11 
+			  Updating   : systemd-219-78.el7_9.5.x86_64                                                                                            4/11 
+			  Installing : systemd-sysv-219-78.el7_9.5.x86_64                                                                                       5/11 
+			  Installing : uuid-1.6.2-26.el7.x86_64                                                                                                 6/11 
+			  Installing : libxslt-1.1.28-6.el7.x86_64                                                                                              7/11 
+			  Installing : postgresql-contrib-9.2.24-7.el7_9.x86_64                                                                                 8/11 
+			  Installing : postgresql-server-9.2.24-7.el7_9.x86_64                                                                                  9/11 
+			  Cleanup    : systemd-219-62.el7_6.9.x86_64                                                                                           10/11 
+			  Cleanup    : systemd-libs-219-62.el7_6.9.x86_64                                                                                      11/11 
+			  Verifying  : systemd-sysv-219-78.el7_9.5.x86_64                                                                                       1/11 
+			  Verifying  : systemd-219-78.el7_9.5.x86_64                                                                                            2/11 
+			  Verifying  : libxslt-1.1.28-6.el7.x86_64                                                                                              3/11 
+			  Verifying  : uuid-1.6.2-26.el7.x86_64                                                                                                 4/11 
+			  Verifying  : postgresql-server-9.2.24-7.el7_9.x86_64                                                                                  5/11 
+			  Verifying  : postgresql-contrib-9.2.24-7.el7_9.x86_64                                                                                 6/11 
+			  Verifying  : systemd-libs-219-78.el7_9.5.x86_64                                                                                       7/11 
+			  Verifying  : postgresql-9.2.24-7.el7_9.x86_64                                                                                         8/11 
+			  Verifying  : postgresql-libs-9.2.24-7.el7_9.x86_64                                                                                    9/11 
+			  Verifying  : systemd-219-62.el7_6.9.x86_64                                                                                           10/11 
+			  Verifying  : systemd-libs-219-62.el7_6.9.x86_64                                                                                      11/11 
+
+			Installed:
+			  postgresql-contrib.x86_64 0:9.2.24-7.el7_9                            postgresql-server.x86_64 0:9.2.24-7.el7_9                           
+
+			Dependency Installed:
+			  libxslt.x86_64 0:1.1.28-6.el7                 postgresql.x86_64 0:9.2.24-7.el7_9          postgresql-libs.x86_64 0:9.2.24-7.el7_9         
+			  systemd-sysv.x86_64 0:219-78.el7_9.5          uuid.x86_64 0:1.6.2-26.el7                 
+
+			Dependency Updated:
+			  systemd.x86_64 0:219-78.el7_9.5                                    systemd-libs.x86_64 0:219-78.el7_9.5                                   
+
+			Complete!
+
+		3. Initialize PostgreSQL Database
+		# postgresql-setup initdb
+			Initializing database ... OK
+
+		4. Start Enable and check status of PostgreSQL server
+		# systemctl enable postgresql
+			Created symlink from /etc/systemd/system/multi-user.target.wants/postgresql.service to /usr/lib/systemd/system/postgresql.service.
+
+		# systemctl start postgresql
+
+		# systemctl status postgresql
+			● postgresql.service - PostgreSQL database server
+			   Loaded: loaded (/usr/lib/systemd/system/postgresql.service; enabled; vendor preset: disabled)
+			   Active: active (running) since Tue 2022-02-08 17:24:32 UTC; 8s ago
+			  Process: 1471 ExecStart=/usr/bin/pg_ctl start -D ${PGDATA} -s -o -p ${PGPORT} -w -t 300 (code=exited, status=0/SUCCESS)
+			  Process: 1466 ExecStartPre=/usr/bin/postgresql-check-db-dir ${PGDATA} (code=exited, status=0/SUCCESS)
+			 Main PID: 1473 (postgres)
+			   CGroup: /docker/2240bda0d54fecbc61d69723d349ca3db73e34b7742ed672f551e51237dc79e1/system.slice/postgresql.service
+			           ├─1473 /usr/bin/postgres -D /var/lib/pgsql/data -p 5432
+			           ├─1474 postgres: logger process   
+			           ├─1476 postgres: checkpointer process   
+			           ├─1477 postgres: writer process   
+			           ├─1478 postgres: wal writer process   
+			           ├─1479 postgres: autovacuum launcher process   
+			           └─1480 postgres: stats collector process   
+
+			Feb 08 17:24:30 stdb01.stratos.xfusioncorp.com systemd[1]: Starting PostgreSQL database server...
+			Feb 08 17:24:32 stdb01.stratos.xfusioncorp.com pg_ctl[1471]: LOG:  could not bind IPv6 socket: Cannot assign requested address
+			Feb 08 17:24:32 stdb01.stratos.xfusioncorp.com pg_ctl[1471]: HINT:  Is another postmaster already running on port 5432? If not, wait ...etry.
+			Feb 08 17:24:32 stdb01.stratos.xfusioncorp.com systemd[1]: Started PostgreSQL database server.
+			Hint: Some lines were ellipsized, use -l to show in full.
+
+		5. Login to PostgreSQL server as its root user , and create the user and database mentioned , and grent priviledges
+		#  sudo -u postgres psql
+			could not change directory to "/root"
+			psql (9.2.24)
+			Type "help" for help.
+
+			postgres=# CREATE USER kodekloud_cap WITH PASSWORD 'YchZHRcLkL';
+			CREATE ROLE
+			
+			postgres=# CREATE DATABASE kodekloud_db4;
+			CREATE DATABASE
+			
+			postgres=# GRANT ALL PRIVILEGES ON DATABASE "kodekloud_db4" to kodekloud_cap;
+			GRANT
+			
+			postgres=# \q
+
+		6. Edit PostgreSQL configuration file to enable IP address connections
+		# vi /var/lib/pgsql/data/postgresql.conf
+			listen_addresses = 'localhost'   <Uncommnet it>
+
+		# cat /var/lib/pgsql/data/postgresql.conf|grep localhost
+			listen_addresses = 'localhost'          # what IP address(es) to listen on;
+			                                        # defaults to 'localhost'; use '*' for all
+
+		7. Edit HBA (Host based authentication) configuration file to enable  md5 authentication instead of passowrd or default settings
+		# vi /var/lib/pgsql/data/pg_hba.conf
+			local   all             all                                     md5
+			host    all             all             127.0.0.1/32            md5
+			host    all             all             ::1/128                 md5 
+
+		# cat /var/lib/pgsql/data/pg_hba.conf|grep md5
+			# METHOD can be "trust", "reject", "md5", "password", "gss", "sspi",
+			# "password" sends passwords in clear text; "md5" is preferred since
+			local   all             all                                     md5
+			host    all             all             127.0.0.1/32            md5
+			host    all             all             ::1/128                 md5 
+
+		8. REstart and check status of postgresql server
+		# systemctl restart postgresql
+
+		# systemctl status postgresql
+			● postgresql.service - PostgreSQL database server
+			   Loaded: loaded (/usr/lib/systemd/system/postgresql.service; enabled; vendor preset: disabled)
+			   Active: active (running) since Tue 2022-02-08 17:31:04 UTC; 12s ago
+			  Process: 1516 ExecStop=/usr/bin/pg_ctl stop -D ${PGDATA} -s -m fast (code=exited, status=0/SUCCESS)
+			  Process: 1522 ExecStart=/usr/bin/pg_ctl start -D ${PGDATA} -s -o -p ${PGPORT} -w -t 300 (code=exited, status=0/SUCCESS)
+			  Process: 1517 ExecStartPre=/usr/bin/postgresql-check-db-dir ${PGDATA} (code=exited, status=0/SUCCESS)
+			 Main PID: 1524 (postgres)
+			   CGroup: /docker/2240bda0d54fecbc61d69723d349ca3db73e34b7742ed672f551e51237dc79e1/system.slice/postgresql.service
+			           ├─1524 /usr/bin/postgres -D /var/lib/pgsql/data -p 5432
+			           ├─1525 postgres: logger process   
+			           ├─1527 postgres: checkpointer process   
+			           ├─1528 postgres: writer process   
+			           ├─1529 postgres: wal writer process   
+			           ├─1530 postgres: autovacuum launcher process   
+			           └─1531 postgres: stats collector process   
+
+			Feb 08 17:31:03 stdb01.stratos.xfusioncorp.com systemd[1]: Starting PostgreSQL database server...
+			Feb 08 17:31:03 stdb01.stratos.xfusioncorp.com pg_ctl[1522]: LOG:  could not bind IPv6 socket: Cannot assign requested address
+			Feb 08 17:31:03 stdb01.stratos.xfusioncorp.com pg_ctl[1522]: HINT:  Is another postmaster already running on port 5432? If not, wait ...etry.
+			Feb 08 17:31:04 stdb01.stratos.xfusioncorp.com systemd[1]: Started PostgreSQL database server.
+			Hint: Some lines were ellipsized, use -l to show in full.
+
+		9.Verify by login to postgresql database using created user on localhost/127.0.0.1 and mention password.
+		# psql -U kodekloud_cap -d kodekloud_db4 -h 127.0.0.1 -W
+			Password for user kodekloud_cap: 
+			psql (9.2.24)
+			Type "help" for help.
+
+			kodekloud_db4=> \q
+
+		# psql -U kodekloud_cap -d kodekloud_db4 -h localhost -W
+			Password for user kodekloud_cap: 
+			psql (9.2.24)
+			Type "help" for help.
+
+			kodekloud_db4=> \q
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+Task 37 Onwards : Kodekloud Cheatsheat DevOps Task Commands.txt
+
+--------------------------------------------------------------------------------------------------------------------------------------------
