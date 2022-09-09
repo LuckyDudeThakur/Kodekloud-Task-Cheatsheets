@@ -5424,7 +5424,99 @@ thor@jump_host ~$ kubectl describe pods webserver
 		  Normal  Started    20s   kubelet            Started container sidecar-container 
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 78:
+Task 78: 9/Sep/2022
+
+ Print Environment Variables
+
+ The Nautilus DevOps team is working on to setup some pre-requisites for an application that will send the greetings to different users. There is a sample deployment, that needs to be tested. Below is a scenario which needs to be configured on Kubernetes cluster. Please find below more details about it.
+
+    Create a pod named print-envars-greeting.
+
+    Configure spec as, the container name should be print-env-container and use bash image.
+
+    Create three environment variables:
+
+a. GREETING and its value should be Welcome to
+
+b. COMPANY and its value should be Nautilus
+
+c. GROUP and its value should be Datacenter
+
+    Use command to echo ["$(GREETING) $(COMPANY) $(GROUP)"] message.
+
+    You can check the output using <kubctl logs -f [ pod-name ]> command.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+1.
+thor@jump_host ~$ kubectl get services
+		NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   88m
+
+thor@jump_host ~$ kubectl get pods
+		No resources found in default namespace.
+
+2.
+thor@jump_host ~$ vi /tmp/env.yml
+
+thor@jump_host ~$ cat /tmp/env.yml
+		apiVersion: v1
+
+		kind: Pod
+
+		metadata:
+
+		  name: print-envars-greeting
+
+		  labels:
+
+		    name: print-envars-greeting
+
+		spec:
+
+		  containers:
+
+		    - name: print-env-container
+
+		      image: bash
+
+		      env:
+
+		        - name: GREETING
+
+		          value: "Welcome to"
+
+		        - name: COMPANY
+
+		          value: "Nautilus"
+
+		        - name: GROUP
+
+		          value: "Datacenter"
+
+		      command: ["echo"]
+
+		      args: ["$(GREETING) $(COMPANY) $(GROUP)"]
+
+
+3.
+thor@jump_host ~$ kubectl create -f /tmp/env.yml
+		pod/print-envars-greeting created
+
+4.
+thor@jump_host ~$ kubectl get pods
+		NAME                    READY   STATUS      RESTARTS   AGE
+		print-envars-greeting   0/1     Completed   1          14s
+
+thor@jump_host ~$ kubectl get pods
+		NAME                    READY   STATUS      RESTARTS   AGE
+		print-envars-greeting   0/1     Completed   2          30s
+
+5.
+thor@jump_host ~$ kubectl logs -f print-envars-greeting
+		Welcome to Nautilus Datacenter
+thor@jump_host ~$
+
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 79:
