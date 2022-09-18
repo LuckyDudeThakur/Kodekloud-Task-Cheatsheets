@@ -5519,7 +5519,101 @@ thor@jump_host ~$
 
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 79:
+Task 79: 18/Sep/2022
+
+Manage Secrets in Kubernetes
+
+
+The Nautilus DevOps team is working to deploy some tools in Kubernetes cluster. Some of the tools are licence based so that licence information needs to be stored securely within Kubernetes cluster. Therefore, the team wants to utilize Kubernetes secrets to store those secrets. Below you can find more details about the requirements:
+
+    We already have a secret key file news.txt under /opt location on jump host. Create a generic secret named news, it should contain the password/license-number present in news.txt file.
+
+    Also create a pod named secret-xfusion.
+
+    Configure pod's spec as container name should be secret-container-xfusion, image should be fedora preferably with latest tag (remember to mention the tag with image). Use sleep command for container so that it remains in running state. Consume the created secret and mount it under /opt/cluster within the container.
+
+    To verify you can exec into the container secret-container-xfusion, to check the secret key under the mounted path /opt/cluster. Before hitting the Check button please make sure pod/pods are in running state, also validation can take some time to complete so keep patience.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+1.
+thor@jump_host ~$ cat /opt/news.txt 
+	5ecur3
+
+2. 
+thor@jump_host ~$ kubectl create secret generic news --from-file=/opt/news.txt 
+	secret/news created
+ 
+thor@jump_host ~$ ls -ahl /opt/
+	total 12K
+	drwxr-xr-x 1 thor thor 4.0K Sep 18 17:35 .
+	drwxr-xr-x 1 root root 4.0K Sep 18 17:35 ..
+	-rw-r--r-- 1 root root    7 Sep 18 17:35 news.txt
+
+3.
+thor@jump_host ~$ vi /tmp/secret.yml
+ 
+thor@jump_host ~$ cat /tmp/secret.yml 
+		apiVersion: v1
+
+		kind: Pod
+
+		metadata:
+
+		  name: secret-xfusion
+
+		  labels:
+
+		    name: myapp
+
+		spec:
+
+		  volumes:
+
+		    - name: secret-volume-xfusion
+
+		      secret:
+
+		        secretName: news
+
+		  containers:
+
+		    - name: secret-container-xfusion
+
+		      image: fedora:latest
+
+		      command: ["/bin/bash", "-c", "sleep 10000"]
+
+		      volumeMounts:
+
+		        - name: secret-volume-xfusion
+
+		          mountPath: /opt/cluster
+
+		          readOnly: true
+
+4.
+thor@jump_host ~$ kubectl create -f /tmp/secret.yml 
+	pod/secret-xfusion created
+
+5.
+thor@jump_host ~$ kubectl get pods 
+	NAME             READY   STATUS              RESTARTS   AGE
+	secret-xfusion   0/1     ContainerCreating   0          7s
+
+thor@jump_host ~$ kubectl get pods 
+	NAME             READY   STATUS              RESTARTS   AGE
+	secret-xfusion   0/1     ContainerCreating   0          16s
+
+thor@jump_host ~$ kubectl get pods 
+	NAME             READY   STATUS    RESTARTS   AGE
+	secret-xfusion   1/1     Running   0          78s
+
+6.	
+thor@jump_host ~$ kubectl exec secret-xfusion -- cat /opt/cluster/news.txt
+	5ecur3
+thor@jump_host ~$ 
+
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 80:
