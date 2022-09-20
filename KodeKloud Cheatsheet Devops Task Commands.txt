@@ -5616,10 +5616,216 @@ thor@jump_host ~$
 
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 80:
+Task 80: 20/Sep/2022
+
+Creating Soft Links Using Ansible
+
+
+The Nautilus DevOps team is practicing some of the Ansible modules and creating and testing different Ansible playbooks to accomplish tasks. Recently they started testing an Ansible file module to create soft links on all app servers. Below you can find more details about it.
+
+Write a playbook.yml under /home/thor/ansible directory on jump host, an inventory file is already present under /home/thor/ansible directory on jump host itself. Using this playbook accomplish below given tasks:
+
+    Create an empty file /opt/security/blog.txt on app server 1; its user owner and group owner should be tony. Create a symbolic link of source path /opt/security to destination /var/www/html.
+
+    Create an empty file /opt/security/story.txt on app server 2; its user owner and group owner should be steve. Create a symbolic link of source path /opt/security to destination /var/www/html.
+
+    Create an empty file /opt/security/media.txt on app server 3; its user owner and group owner should be banner. Create a symbolic link of source path /opt/security to destination /var/www/html.
+
+Note: Validation will try to run the playbook using command ansible-playbook -i inventory playbook.yml so please make sure playbook works this way without passing any extra arguments.
+
+
+1. Verify the ansible inventory file
+
+thor@jump_host ~$ cd /home/thor/ansible/
+
+thor@jump_host ~/ansible$ ls -ahl
+	total 16K
+	drwxr-xr-x 2 thor thor 4.0K Sep 20 14:52 .
+	drwxr----- 1 thor thor 4.0K Sep 20 14:52 ..
+	-rw-r--r-- 1 thor thor   36 Sep 20 14:52 ansible.cfg
+	-rw-r--r-- 1 thor thor  237 Sep 20 14:52 inventory
+ 
+thor@jump_host ~/ansible$ ansible all -a "ls -ahl /opt/security" -i inventory
+	stapp01 | CHANGED | rc=0 >>
+	total 8.0K
+	drwxr-xr-x 2 root root 4.0K Sep 20 14:52 .
+	drwxr-xr-x 1 root root 4.0K Sep 20 14:52 ..
+	stapp02 | CHANGED | rc=0 >>
+	total 8.0K
+	drwxr-xr-x 2 root root 4.0K Sep 20 14:52 .
+	drwxr-xr-x 1 root root 4.0K Sep 20 14:52 ..
+	stapp03 | CHANGED | rc=0 >>
+	total 8.0K
+	drwxr-xr-x 2 root root 4.0K Sep 20 14:52 .
+	drwxr-xr-x 1 root root 4.0K Sep 20 14:52 ..
+
+2. Create the playbook.yml file
+
+thor@jump_host ~/ansible$ pwd
+	/home/thor/ansible
+
+thor@jump_host ~/ansible$ vi playbook.yml
+ 
+thor@jump_host ~/ansible$ cat playbook.yml 
+	- name: Create text files and create soft link
+
+	  hosts: stapp01, stapp02, stapp03
+
+	  become: yes
+
+	  tasks:
+
+	    - name: Create the blog.txt on stapp01
+
+	      file:
+
+	        path: /opt/security/blog.txt
+
+	        owner: tony
+
+	        group: tony
+
+	        state: touch
+
+	      when: inventory_hostname == "stapp01"
+
+	    - name: Create the story.txt on stapp02
+
+	      file:
+
+	        path: /opt/security/story.txt
+
+	        owner: steve
+
+	        group: steve
+
+	        state: touch
+
+	      when: inventory_hostname == "stapp02"
+
+	    - name: Create the media.txt on stapp03
+
+	      file:
+
+	        path: /opt/security/media.txt
+
+	        owner: banner
+
+	        group: banner
+
+	        state: touch
+
+	      when: inventory_hostname == "stapp03"
+
+	    - name: Link /opt/security directory
+
+	      file:
+
+	        src: /opt/security/
+
+	        dest: /var/www/html
+
+	        state: link
+
+3. Run the playbook	        
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml 
+
+		PLAY [Create text files and create soft link] ***********************************************************************************************
+
+		TASK [Gathering Facts] **********************************************************************************************************************
+		ok: [stapp03]
+		ok: [stapp01]
+		ok: [stapp02]
+
+		TASK [Create the blog.txt on stapp01] *******************************************************************************************************
+		skipping: [stapp02]
+		skipping: [stapp03]
+		changed: [stapp01]
+
+		TASK [Create the story.txt on stapp02] ******************************************************************************************************
+		skipping: [stapp01]
+		skipping: [stapp03]
+		changed: [stapp02]
+
+		TASK [Create the media.txt on stapp03] ******************************************************************************************************
+		skipping: [stapp02]
+		skipping: [stapp01]
+		changed: [stapp03]
+
+		TASK [Link /opt/security directory] *********************************************************************************************************
+		changed: [stapp01]
+		changed: [stapp03]
+		changed: [stapp02]
+
+		PLAY RECAP **********************************************************************************************************************************
+		stapp01                    : ok=3    changed=2    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0   
+		stapp02                    : ok=3    changed=2    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0   
+		stapp03                    : ok=3    changed=2    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0   
+
+4. Verify the file created and soft link made.
+
+thor@jump_host ~/ansible$ ansible all -a "ls -ahl /opt/security" -i inventory
+	stapp01 | CHANGED | rc=0 >>
+	total 8.0K
+	drwxr-xr-x 2 root root 4.0K Sep 20 14:57 .
+	drwxr-xr-x 1 root root 4.0K Sep 20 14:52 ..
+	-rw-r--r-- 1 tony tony    0 Sep 20 14:57 blog.txt
+	stapp03 | CHANGED | rc=0 >>
+	total 8.0K
+	drwxr-xr-x 2 root   root   4.0K Sep 20 14:57 .
+	drwxr-xr-x 1 root   root   4.0K Sep 20 14:52 ..
+	-rw-r--r-- 1 banner banner    0 Sep 20 14:57 media.txt
+	stapp02 | CHANGED | rc=0 >>
+	total 8.0K
+	drwxr-xr-x 2 root  root  4.0K Sep 20 14:57 .
+	drwxr-xr-x 1 root  root  4.0K Sep 20 14:52 ..
+	-rw-r--r-- 1 steve steve    0 Sep 20 14:57 story.txt
+
+thor@jump_host ~/ansible$ ansible all -a "ls -ahl /var/www/html" -i inventory
+	stapp02 | CHANGED | rc=0 >>
+	lrwxrwxrwx 1 root root 14 Sep 20 14:57 /var/www/html -> /opt/security/
+	stapp01 | CHANGED | rc=0 >>
+	lrwxrwxrwx 1 root root 14 Sep 20 14:57 /var/www/html -> /opt/security/
+	stapp03 | CHANGED | rc=0 >>
+	lrwxrwxrwx 1 root root 14 Sep 20 14:57 /var/www/html -> /opt/security/
+
+thor@jump_host ~/ansible$
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 81:
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 82:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 83:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 84:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 85:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 86:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 87:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 88:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 89:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 90:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 91:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 92:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 93:
