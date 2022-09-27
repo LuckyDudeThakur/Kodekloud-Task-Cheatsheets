@@ -6020,7 +6020,161 @@ root@jump_host ~# puppetserver ca list --all
 		    stapp01.stratos.xfusioncorp.com                  (SHA256)  8D:B1:DC:89:72:FC:12:00:C8:9D:D3:1A:9A:A4:76:C9:EA:0E:31:E2:F5:2D:DF:F3:27:D6:32:57:EA:04:CF:34       alt names: ["DNS:stapp01.stratos.xfusioncorp.com"]
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 82:
+Task 82: 27/Sep/2022
+
+Deploy Jenkins on Kubernetes
+
+The Nautilus DevOps team is planning to set up a Jenkins CI server to create/manage some deployment pipelines for some of the projects. They want to set up the Jenkins server on Kubernetes cluster. Below you can find more details about the task:
+
+1) Create a namespace jenkins
+
+2) Create a Service for jenkins deployment. Service name should be jenkins-service under jenkins namespace, type should be NodePort, nodePort should be 30008
+
+3) Create a Jenkins Deployment under jenkins namespace, It should be name as jenkins-deployment , labels app should be jenkins , container name should be jenkins-container , use jenkins/jenkins image , containerPort should be 8080 and replicas count should be 1.
+
+Make sure to wait for the pods to be in running state and make sure you are able to access the Jenkins login screen in the browser before hitting the Check button.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+1. Check kubectl utility configuration and working on jump_host
+thor@jump_host ~$ kubectl get namespace
+		NAME                 STATUS   AGE
+		default              Active   4h50m
+		kube-node-lease      Active   4h50m
+		kube-public          Active   4h50m
+		kube-system          Active   4h50m
+		local-path-storage   Active   4h49m
+ 
+thor@jump_host ~$ kubectl get service
+		NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   4h50m
+
+2. Create namespace  and verify
+thor@jump_host ~$ kubectl create namespace jenkins
+		namespace/jenkins created
+
+thor@jump_host ~$ kubectl get namespace
+		NAME                 STATUS   AGE
+		default              Active   4h50m
+		jenkins              Active   4s 															<-----------------------
+		kube-node-lease      Active   4h50m
+		kube-public          Active   4h50m
+		kube-system          Active   4h50m
+		local-path-storage   Active   4h50m
+
+3. Create jenkins.yaml file as per requirement 
+thor@jump_host ~$ vi /tmp/jenkins.yaml
+
+thor@jump_host ~$ cat /tmp/jenkins.yaml
+		apiVersion: v1
+
+		kind: Service
+
+		metadata:
+
+		  name: jenkins-service
+
+		  namespace: jenkins
+
+		spec:
+
+		  type: NodePort
+
+		  selector:
+
+		    app: jenkins
+
+		  ports:
+
+		    - port: 8080
+
+		      targetPort: 8080
+
+		      nodePort: 30008
+
+		---
+
+		apiVersion: apps/v1
+
+		kind: Deployment
+
+		metadata:
+
+		  name: jenkins-deployment
+
+		  namespace: jenkins
+
+		  labels:
+
+		    app: jenkins
+
+		spec:
+
+		  replicas: 1
+
+		  selector:
+
+		    matchLabels:
+
+		      app: jenkins
+
+		  template:
+
+		    metadata:
+
+		      labels:
+
+		        app: jenkins
+
+		    spec:
+
+		      containers:
+
+		        - name: jenkins-container
+
+		          image: jenkins/jenkins
+
+		          ports:
+
+		            - containerPort: 8080
+
+4. Create pod
+thor@jump_host ~$ kubectl create -f /tmp/jenkins.yaml 
+		service/jenkins-service created
+		deployment.apps/jenkins-deployment created
+
+5. Wait for deployment and pods  to running status
+thor@jump_host ~$ kubectl get deploy -n jenkins 
+		NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
+		jenkins-deployment   0/1     1            0           23s
+ 
+thor@jump_host ~$ kubectl get deploy -n jenkins 
+		NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
+		jenkins-deployment   1/1     1            1           39s
+
+thor@jump_host ~$ kubectl get pods -n jenkins 
+		NAME                                  READY   STATUS    RESTARTS   AGE
+		jenkins-deployment-6b6c78f968-vw882   1/1     Running   0          48s
+ 
+thor@jump_host ~$ kubectl get service -n jenkins 
+		NAME              TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)          AGE
+		jenkins-service   NodePort   10.96.50.65   <none>        8080:30008/TCP   58s
+
+6. Validate by executing curl against the pod or Open Port on Host1
+thor@jump_host ~$ kubectl exec jenkins-deployment-6b6c78f968-vw882 -n jenkins -- curl http://localhost:8080
+		  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+		                                 Dload  Upload   Total   Spent    Left  Speed
+		100   541  100   541    0     0   1176      0 --:--:-- --:--:-- --:--:--  1176
+		<html><head><meta http-equiv='refresh' content='1;url=/login?from=%2F'/><script>window.location.replace('/login?from=%2F');</script></head><body style='background-color:white; color:white;'>
+
+
+		Authentication required
+		<!--
+		-->
+
+		</body></html>                                                                                                                                                                      
+thor@jump_host ~$ 
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 83:
