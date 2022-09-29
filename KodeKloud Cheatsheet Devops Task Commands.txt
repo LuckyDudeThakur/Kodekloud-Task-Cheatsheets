@@ -6177,8 +6177,204 @@ thor@jump_host ~$ kubectl exec jenkins-deployment-6b6c78f968-vw882 -n jenkins --
 thor@jump_host ~$ 
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 83:
+Task 83: 29/Sep/2022
 
+ Puppet Setup SSH Keys
+
+ The Puppet master and Puppet agent nodes have been set up by the Nautilus DevOps team to perform some testing. In Stratos DC all app servers have been configured as Puppet agent nodes. They want to setup a password less SSH connection between Puppet master and Puppet agent nodes and this task needs to be done using Puppet itself. Below are details about the task:
+
+Create a Puppet programming file games.pp under /etc/puppetlabs/code/environments/production/manifests directory on the Puppet master node i.e on Jump Server. Define a class ssh_node1 for agent node 1 i.e App Server 1, ssh_node2 for agent node 2 i.e App Server 2, ssh_node3 for agent node3 i.e App Server 3. You will need to generate a new ssh key for thor user on Jump Server, that needs to be added on all App Servers.
+
+Configure a password less SSH connection from puppet master i.e jump host to all App Servers. However, please make sure the key is added to the authorized_keys file of each app's sudo user (i.e tony for App Server 1).
+
+Notes: :- Before clicking on the Check button please make sure to verify puppet server and puppet agent services are up and running on the respective servers, also please make sure to run puppet agent test to apply/test the changes manually first.
+
+:- Please note that once lab is loaded, the puppet server service should start automatically on puppet master server, however it can take upto 2-3 minutes to start.
+
+
+1. Generate ssh key-pair for user thor on jump_host and check public key
+
+thor@jump_host ~$ ssh-keygen
+		Generating public/private rsa key pair.
+		Enter file in which to save the key (/home/thor/.ssh/id_rsa): 
+		Enter passphrase (empty for no passphrase): 
+		Enter same passphrase again: 
+		Your identification has been saved in /home/thor/.ssh/id_rsa.
+		Your public key has been saved in /home/thor/.ssh/id_rsa.pub.
+		The key fingerprint is:
+		SHA256:zo/J8SxD46ejJSHPlSaDUX5GE69oTZyDGRjyyhbchtI thor@jump_host.stratos.xfusioncorp.com
+		The key's randomart image is:
+		+---[RSA 2048]----+
+		|  . .oo +.       |
+		| o =.o * +       |
+		|. E = + B .      |
+		| o + o * +       |
+		|  + o * S        |
+		| .   = Oo        |
+		|      +o=.       |
+		|       +=B.      |
+		|      ..=*+      |
+		+----[SHA256]-----+
+
+thor@jump_host ~$ cat /home/thor/.ssh/id_rsa.pub 
+		ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDRFnX7CXiMsSTQ77+9hZMRGtiiCGygqeS1I/qmmj0N6AoyvJypyJRBiTqGhtxMiTgEAp2Ju0KS/LfW2EKTObLFQ7AH1GGvckp4v0NXoY0TgxINKTPm8sD7/Z9Neiz1i2uOz+GvCbTvssrSyuo9jQxPAxJHowaVP+AIQW9XwrnlB0b4YzVGXp/eCugwGJfqzU4HN/lSR/UMwOiKjHvJf8VvhXTkehqI97wfqptkt7WvQ6crHmgor6SDmfAk7+9fNxHqxgQK9QiTHtnI8kjb4JIbNJvUIegjCx/l5Q2FgU5g/ETylmpPkG1ViTR844ICaVyo2Q3JPYsjGVt/XQzCdjor thor@jump_host.stratos.xfusioncorp.com
+
+
+2. Create puppet programming file in the mentioned folder
+thor@jump_host ~$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for thor: 
+ 
+root@jump_host ~# cd /etc/puppetlabs/code/environments/production/manifests/
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ls -ahl
+		total 8.0K
+		drwxr-xr-x 1 puppet puppet 4.0K Jul 13  2021 .
+		drwxr-xr-x 1 puppet puppet 4.0K Aug  9  2021 ..
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# vi games.pp
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat games.pp
+
+		$public_key =  'AAAAB3NzaC1yc2EAAAADAQABAAABAQDRFnX7CXiMsSTQ77+9hZMRGtiiCGygqeS1I/qmmj0N6AoyvJypyJRBiTqGhtxMiTgEAp2Ju0KS/LfW2EKTObLFQ7AH1GGvckp4v0NXoY0TgxINKTPm8sD7/Z9Neiz1i2uOz+GvCbTvssrSyuo9jQxPAxJHowaVP+AIQW9XwrnlB0b4YzVGXp/eCugwGJfqzU4HN/lSR/UMwOiKjHvJf8VvhXTkehqI97wfqptkt7WvQ6crHmgor6SDmfAk7+9fNxHqxgQK9QiTHtnI8kjb4JIbNJvUIegjCx/l5Q2FgU5g/ETylmpPkG1ViTR844ICaVyo2Q3JPYsjGVt/XQzCdjor'
+
+		class ssh_node1 {
+
+		   ssh_authorized_key { 'tony@stapp01':
+
+		     ensure => present,
+
+		    user   => 'tony',
+
+		     type   => 'ssh-rsa',
+
+		     key    => $public_key,
+
+		   }
+
+		 }
+
+		 class ssh_node2 {
+
+		   ssh_authorized_key { 'steve@stapp02':
+
+		     ensure => present,
+
+		     user   => 'steve',
+
+		     type   => 'ssh-rsa',
+
+		     key    => $public_key,
+
+		   }
+
+		 }
+
+		 class ssh_node3 {
+
+		   ssh_authorized_key { 'banner@stapp03':
+
+		     ensure => present,
+
+		     user   => 'banner',
+
+		     type   => 'ssh-rsa',
+
+		     key    => $public_key,
+
+		   }
+
+		 }
+
+		 node stapp01.stratos.xfusioncorp.com {
+
+		   include ssh_node1
+
+		 }
+
+		 node stapp02.stratos.xfusioncorp.com {
+
+		   include ssh_node2
+
+		 }
+
+		 node stapp03.stratos.xfusioncorp.com {
+
+		   include ssh_node3
+
+		 }
+
+3. Validate the puppet file
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# puppet parser validate games.pp
+ 
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# exit
+		logout
+
+4. Login to all app server(stapp01,stapp02,stapp03) and switch to root 
+thor@jump_host ~$ ssh tony@stapp01
+		The authenticity of host 'stapp01 (172.16.238.10)' can't be established.
+		ECDSA key fingerprint is SHA256:6lM6dokqSC7w9D0MiUtgwL6o80mug/nLEa/HkCD2yg8.
+		ECDSA key fingerprint is MD5:51:e4:3f:d8:50:89:9b:c0:8b:a1:50:33:fc:5d:8d:aa.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'stapp01,172.16.238.10' (ECDSA) to the list of known hosts.
+		tony@stapp01's password: 
+ 
+[tony@stapp01 ~]$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for tony: 
+
+5. Run the puppet agent to pull the configuration from puppet master server
+[root@stapp01 ~]# puppet agent -tv
+		Info: Using configured environment 'production'
+		Info: Retrieving pluginfacts
+		Info: Retrieving plugin
+		Info: Retrieving locales
+		Info: Caching catalog for stapp01.stratos.xfusioncorp.com
+		Info: Applying configuration version '1664451362'
+		Notice: /Stage[main]/Ssh_node1/Ssh_authorized_key[tony@stapp01]/ensure: created
+		Notice: Applied catalog in 0.21 seconds
+
+[root@stapp01 ~]# exit
+		logout
+[tony@stapp01 ~]$ exit
+		logout
+		Connection to stapp01 closed.
+ 
+6. Validate by login on app server without password
+
+thor@jump_host ~$ ssh tony@stapp01
+		Last login: Thu Sep 29 11:35:32 2022 from jump_host.stratos.xfusioncorp.com
+[tony@stapp01 ~]$ exit
+		logout
+		Connection to stapp01 closed.
+
+thor@jump_host ~$ ssh steve@stapp02
+		Last login: Thu Sep 29 11:36:32 2022 from jump_host.stratos.xfusioncorp.com
+[steve@stapp02 ~]$ exit
+		logout
+		Connection to stapp02 closed.
+
+thor@jump_host ~$ ssh banner@stapp03
+		Last login: Thu Sep 29 11:37:17 2022 from jump_host.stratos.xfusioncorp.com
+[banner@stapp03 ~]$ exit
+		logout
+		Connection to stapp03 closed.
+
+thor@jump_host ~$
 --------------------------------------------------------------------------------------------------------------------------------
 Task 84:
 
