@@ -6376,7 +6376,120 @@ thor@jump_host ~$ ssh banner@stapp03
 
 thor@jump_host ~$
 --------------------------------------------------------------------------------------------------------------------------------
-Task 84:
+Task 84: 03/Oct/2022
+
+Kubernetes Redis Deployment
+
+The Nautilus application development team observed some performance issues with one of the application that is deployed in Kubernetes cluster. After looking into number of factors, the team has suggested to use some in-memory caching utility for DB service. After number of discussions, they have decided to use Redis. Initially they would like to deploy Redis on kubernetes cluster for testing and later they will move it to production. Please find below more details about the task:
+
+Create a redis deployment with following parameters:
+
+    Create a config map called my-redis-config having maxmemory 2mb in redis-config.
+
+    Name of the deployment should be redis-deployment, it should use redis:alpine image and container name should be redis-container. Also make sure it has only 1 replica.
+
+    The container should request for 1 CPU.
+
+    Mount 2 volumes:
+
+a. An Empty directory volume called data at path /redis-master-data.
+
+b. A configmap volume called redis-config at path /redis-master.
+
+c. The container should expose the port 6379.
+
+    Finally, redis-deployment should be in an up and running state.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+1. Check existing running pods and services
+thor@jump_host ~$ kubectl get all
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   68m
+
+2. Create a YAML file as per required configuration 
+thor@jump_host ~$ vi /tmp/redis.yml
+
+thor@jump_host ~$ cat /tmp/redis.yml 
+		---
+		kind: ConfigMap
+		apiVersion: v1
+		metadata:
+		  name: my-redis-config
+		data:
+		  maxmemory: 2mb
+		---
+		apiVersion: apps/v1
+		kind: Deployment
+		metadata:
+		  name: redis-deployment
+		spec:
+		  replicas: 1
+		  selector:
+		    matchLabels:
+		      app: redis
+		  template:
+		    metadata:
+		      labels:
+		        app: redis
+		    spec:
+		      containers:
+		        - name: redis-container
+		          image: redis:alpine
+		          ports:
+		            - containerPort: 6379
+		          resources:
+		            requests:
+		              cpu: "1000m"
+		          volumeMounts:
+		            - mountPath: /redis-master-data
+		              name: data
+		            - mountPath: /redis-master
+		              name: redis-config
+		      volumes:
+		      - name: data
+		        emptyDir: {}
+		      - name: redis-config
+		        configMap:
+		          name: my-redis-config
+
+3. Create redis deployment using the yaml file 
+thor@jump_host ~$ kubectl create -f /tmp/redis.yml 
+		configmap/my-redis-config created
+		deployment.apps/redis-deployment created
+
+4. Wait for pods and deployment to running status
+thor@jump_host ~$ kubectl get all
+		NAME                                    READY   STATUS    RESTARTS   AGE
+		pod/redis-deployment-544d696886-nmqbl   1/1     Running   0          6s
+
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   69m
+
+		NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/redis-deployment   1/1     1            1           6s
+
+		NAME                                          DESIRED   CURRENT   READY   AGE
+		replicaset.apps/redis-deployment-544d696886   1         1         1       6s
+
+5. Verify configmap
+thor@jump_host ~$ kubectl get configmap
+		NAME               DATA   AGE
+		kube-root-ca.crt   1      69m
+		my-redis-config    1      26s
+
+thor@jump_host ~$ kubectl describe configmap my-redis-config
+		Name:         my-redis-config
+		Namespace:    default
+		Labels:       <none>
+		Annotations:  <none>
+
+		Data
+		====
+		maxmemory:
+		----
+		2mb
+		Events:  <none>
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 85:
