@@ -6492,7 +6492,266 @@ thor@jump_host ~$ kubectl describe configmap my-redis-config
 		Events:  <none>
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 85:
+Task 85: 05/Oct/2022
+
+Puppet Setup NTP Server
+
+While troubleshooting one of the issues on app servers in Stratos Datacenter DevOps team identified the root cause that the time isn't synchronized properly among the all app servers which causes issues sometimes. So team has decided to use a specific time server for all app servers, so that they all remain in sync. This task needs to be done using Puppet so as per details mentioned below please compete the task:
+
+    Create a puppet programming file apps.pp under /etc/puppetlabs/code/environments/production/manifests directory on puppet master node i.e on Jump Server. Within the programming file define a custom class ntpconfig to install and configure ntp server on app server 1.
+
+    Add NTP Server server 1.africa.pool.ntp.org in default configuration file on app server 1, also remember to use iburst option for faster synchronization at startup.
+
+    Please note that do not try to start/restart/stop ntp service, as we already have a scheduled restart for this service tonight and we don't want these changes to be applied right now.
+
+Notes: :- Please make sure to run the puppet agent test using sudo on agent nodes, otherwise you can face certificate issues. In that case you will have to clean the certificates first and then you will be able to run the puppet agent test.
+
+:- Before clicking on the Check button please make sure to verify puppet server and puppet agent services are up and running on the respective servers, also please make sure to run puppet agent test to apply/test the changes manually first.
+
+:- Please note that once lab is loaded, the puppet server service should start automatically on puppet master server, however it can take upto 2-3 minutes to start.
+
+
+
+1. Switch to root , list all puppet module and if not found install ntpd module
+thor@jump_host ~$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for thor: 
+ 
+root@jump_host ~# puppet module list
+		/etc/puppetlabs/code/environments/production/modules (no modules installed)
+		/etc/puppetlabs/code/modules (no modules installed)
+		/opt/puppetlabs/puppet/modules (no modules installed)
+
+root@jump_host ~# puppet module install puppetlabs-ntp
+		Notice: Preparing to install into /etc/puppetlabs/code/environments/production/modules ...
+		Notice: Downloading from https://forgeapi.puppet.com ...
+		Notice: Installing -- do not interrupt ...
+		/etc/puppetlabs/code/environments/production/modules
+		└─┬ puppetlabs-ntp (v9.2.0)
+		  └── puppetlabs-stdlib (v8.4.0)
+
+root@jump_host ~# puppet module list
+		/etc/puppetlabs/code/environments/production/modules
+		├── puppetlabs-ntp (v9.2.0)
+		└── puppetlabs-stdlib (v8.4.0)
+		/etc/puppetlabs/code/modules (no modules installed)
+		/opt/puppetlabs/puppet/modules (no modules installed)
+
+2. Create the puppet programming file as per requirement
+root@jump_host ~# cd /etc/puppetlabs/code/environments/production/manifests
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ls -ahl
+		total 8.0K
+		drwxr-xr-x 1 puppet puppet 4.0K Jul 13  2021 .
+		drwxr-xr-x 1 puppet puppet 4.0K Aug  9  2021 ..
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# vi apps.pp
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat apps.pp
+		class { 'ntp':
+
+		  servers => [ 'server 1.africa.pool.ntp.org iburst' ],                                               
+
+		}    
+
+		class ntpconfig {
+
+		  include ntp
+
+		}  
+
+		node 'stapp01.stratos.xfusioncorp.com' {
+
+		  include ntpconfig
+
+		}
+
+		node 'stapp02.stratos.xfusioncorp.com' {
+
+		  include ntpconfig
+
+		}
+
+		node 'stapp03.stratos.xfusioncorp.com' {
+
+		  include ntpconfig
+
+		}
+
+3. Validate the puppet file		
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# puppet parser validate apps.pp
+
+
+4. Login to app servers 1,2 and 3 and switch to root users 
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh tony@stapp01
+		The authenticity of host 'stapp01 (172.16.238.10)' can't be established.
+		ECDSA key fingerprint is SHA256:6/+jfJXDk6LzuxE5Dp95v1rwgND7rHqTZfBXDoY61WE.
+		ECDSA key fingerprint is MD5:d8:fb:8c:3b:92:f0:5a:82:bf:6f:d8:ab:6a:c6:a4:e4.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'stapp01,172.16.238.10' (ECDSA) to the list of known hosts.
+		tony@stapp01's password: 
+
+[tony@stapp01 ~]$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for tony:
+
+5. Check ntpd service running 		 
+[root@stapp01 ~]# puppet resource service ntpd
+		service { 'ntpd':
+		  ensure   => 'stopped',
+		  enable   => 'false',
+		  provider => 'systemd',
+		}
+ 
+6. Run Puppet agent to pull the configuration from puppet server  
+[root@stapp01 ~]# puppet agent -tv
+		Info: Using configured environment 'production'
+		Info: Retrieving pluginfacts
+		Info: Retrieving plugin
+		Info: Retrieving locales
+		Info: Loading facts
+		Info: Caching catalog for stapp01.stratos.xfusioncorp.com
+		Info: Applying configuration version '1664992996'
+		Notice: /Stage[main]/Ntp::Install/Package[ntp]/ensure: created
+		Notice: /Stage[main]/Ntp::Config/File[/etc/ntp.conf]/content: 
+		--- /etc/ntp.conf       2019-11-27 16:47:41.000000000 +0000
+		+++ /tmp/puppet-file20221005-572-vd56vb 2022-10-05 18:03:52.763950667 +0000
+		@@ -1,58 +1,30 @@
+		-# For more information about this file, see the man pages
+		-# ntp.conf(5), ntp_acc(5), ntp_auth(5), ntp_clock(5), ntp_misc(5), ntp_mon(5).
+		+# ntp.conf: Managed by puppet.
+		+#
+		+# Enable next tinker options:
+		+# panic - keep ntpd from panicking in the event of a large clock skew
+		+# when a VM guest is suspended and resumed;
+		+# stepout - allow ntpd change offset faster
+		+tinker panic 0
+		+disable monitor
+		 
+		-driftfile /var/lib/ntp/drift
+		+statsdir /var/log/ntpstats
+		 
+		 # Permit time synchronization with our time source, but do not
+		 # permit the source to query or modify the service on this system.
+		-restrict default nomodify notrap nopeer noquery
+		-
+		-# Permit all access over the loopback interface.  This could
+		-# be tightened as well, but to do so would effect some of
+		-# the administrative functions.
+		-restrict 127.0.0.1 
+		-restrict ::1
+		-
+		-# Hosts on local network are less restricted.
+		-#restrict 192.168.1.0 mask 255.255.255.0 nomodify notrap
+		-
+		-# Use public servers from the pool.ntp.org project.
+		-# Please consider joining the pool (http://www.pool.ntp.org/join.html).
+		-server 0.centos.pool.ntp.org iburst
+		-server 1.centos.pool.ntp.org iburst
+		-server 2.centos.pool.ntp.org iburst
+		-server 3.centos.pool.ntp.org iburst
+		-
+		-#broadcast 192.168.1.255 autokey       # broadcast server
+		-#broadcastclient                       # broadcast client
+		-#broadcast 224.0.1.1 autokey           # multicast server
+		-#multicastclient 224.0.1.1             # multicast client
+		-#manycastserver 239.255.254.254                # manycast server
+		-#manycastclient 239.255.254.254 autokey # manycast client
+		-
+		-# Enable public key cryptography.
+		-#crypto
+		-
+		-includefile /etc/ntp/crypto/pw
+		+restrict default kod nomodify notrap nopeer noquery
+		+restrict -6 default kod nomodify notrap nopeer noquery
+		+restrict 127.0.0.1
+		+restrict -6 ::1
+		+
+		+# Set up servers for ntpd with next options:
+		+# server - IP address or DNS name of upstream NTP server
+		+# burst - send a burst of eight packets instead of the usual one.
+		+# iburst - allow send sync packages faster if upstream unavailable
+		+# prefer - select preferrable server
+		+# minpoll - set minimal update frequency
+		+# maxpoll - set maximal update frequency
+		+# noselect - do not sync with this server
+		+server server 1.africa.pool.ntp.org iburst
+		 
+		-# Key file containing the keys and key identifiers used when operating
+		-# with symmetric key cryptography. 
+		-keys /etc/ntp/keys
+		-
+		-# Specify the key identifiers which are trusted.
+		-#trustedkey 4 8 42
+		-
+		-# Specify the key identifier to use with the ntpdc utility.
+		-#requestkey 8
+		-
+		-# Specify the key identifier to use with the ntpq utility.
+		-#controlkey 8
+		-
+		-# Enable writing of statistics records.
+		-#statistics clockstats cryptostats loopstats peerstats
+		-
+		-# Disable the monitoring facility to prevent amplification attacks using ntpdc
+		-# monlist command when default restrict does not include the noquery flag. See
+		-# CVE-2013-5211 for more details.
+		-# Note: Monitoring will not be disabled with the limited restriction flag.
+		-disable monitor
+		+# Driftfile.
+		+driftfile /var/lib/ntp/drift
+
+		Info: Computing checksum on file /etc/ntp.conf
+		Info: /Stage[main]/Ntp::Config/File[/etc/ntp.conf]: Filebucketed /etc/ntp.conf to puppet with sum dc9e5754ad2bb6f6c32b954c04431d0a
+		Notice: /Stage[main]/Ntp::Config/File[/etc/ntp.conf]/content: content changed '{md5}dc9e5754ad2bb6f6c32b954c04431d0a' to '{md5}3ead0e8724aba2f2dccd54df6fb0bed6'
+		Notice: /Stage[main]/Ntp::Config/File[/etc/ntp/step-tickers]/content: 
+		--- /etc/ntp/step-tickers       2019-11-27 16:47:41.000000000 +0000
+		+++ /tmp/puppet-file20221005-572-1oe06ym        2022-10-05 18:03:52.859957523 +0000
+		@@ -1,3 +1,3 @@
+		 # List of NTP servers used by the ntpdate service.
+		 
+		-0.centos.pool.ntp.org
+		+server 1.africa.pool.ntp.org iburst																																				<-----------------------------
+
+		Info: Computing checksum on file /etc/ntp/step-tickers
+		Info: /Stage[main]/Ntp::Config/File[/etc/ntp/step-tickers]: Filebucketed /etc/ntp/step-tickers to puppet with sum 9b77b3b3eb41daf0b9abb8ed01c5499b
+		Notice: /Stage[main]/Ntp::Config/File[/etc/ntp/step-tickers]/content: content changed '{md5}9b77b3b3eb41daf0b9abb8ed01c5499b' to '{md5}f4c913e757420b9f50c2fbd38715cbc5'
+		Info: Class[Ntp::Config]: Scheduling refresh of Class[Ntp::Service]
+		Info: Class[Ntp::Service]: Scheduling refresh of Service[ntp]
+		Notice: /Stage[main]/Ntp::Service/Service[ntp]/ensure: ensure changed 'stopped' to 'running'								<---------------------------------
+		Info: /Stage[main]/Ntp::Service/Service[ntp]: Unscheduling refresh on Service[ntp]
+		Notice: Applied catalog in 19.25 seconds
+
+7. Validate the task by checking resource service ntpd
+[root@stapp01 ~]# puppet resource service ntpd
+		service { 'ntpd':
+		  ensure   => 'running',
+		  enable   => 'true',
+		  provider => 'systemd',
+		}
+
+[root@stapp01 ~]# exit
+		logout
+
+[tony@stapp01 ~]$ exit
+		logout
+		Connection to stapp01 closed.
+
+8. Repeat the tasks for App server 2 and app server 3.		
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 86:
