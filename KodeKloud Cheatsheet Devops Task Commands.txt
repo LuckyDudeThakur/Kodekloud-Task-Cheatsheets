@@ -6754,7 +6754,175 @@ root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh tony@
 8. Repeat the tasks for App server 2 and app server 3.		
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 86:
+Task 86: 07/Oct/2022
+
+Using Ansible Conditionals
+
+
+The Nautilus DevOps team had a discussion about, how they can train different team members to use Ansible for different automation tasks. There are numerous ways to perform a particular task using Ansible, but we want to utilize each aspect that Ansible offers. The team wants to utilise Ansible's conditionals to perform the following task:
+
+An inventory file is already placed under /home/thor/ansible directory on jump host, with all the Stratos DC app servers included.
+
+Create a playbook /home/thor/ansible/playbook.yml and make sure to use Ansible's when conditionals statements to perform the below given tasks.
+
+    Copy blog.txt file present under /usr/src/devops directory on jump host to App Server 1 under /opt/devops directory. Its user and group owner must be user tony and its permissions must be 0777 .
+
+    Copy story.txt file present under /usr/src/devops directory on jump host to App Server 2 under /opt/devops directory. Its user and group owner must be user steve and its permissions must be 0777 .
+
+    Copy media.txt file present under /usr/src/devops directory on jump host to App Server 3 under /opt/devops directory. Its user and group owner must be user banner and its permissions must be 0777 .
+
+NOTE: You can use ansible_nodename variable from gathered facts with when condition. Additionally, please make sure you are running the play for all hosts i.e use - hosts: all.
+
+Note: Validation will try to run the playbook using command ansible-playbook -i inventory playbook.yml, so please make sure the playbook works this way without passing any extra arguments.
+
+1. Check the inventory file and run ansible to verify.
+thor@jump_host ~$ cd /home/thor/ansible/
+
+thor@jump_host ~/ansible$ ls -ahl
+		total 16K
+		drwxr-xr-x 2 thor thor 4.0K Oct  7 10:25 .
+		drwxr----- 1 thor thor 4.0K Oct  7 10:25 ..
+		-rw-r--r-- 1 thor thor   36 Oct  7 10:25 ansible.cfg
+		-rw-r--r-- 1 thor thor  237 Oct  7 10:25 inventory
+
+thor@jump_host ~/ansible$ cat inventory 
+		stapp01 ansible_host=172.16.238.10 ansible_ssh_pass=Ir0nM@n ansible_user=tony
+		stapp02 ansible_host=172.16.238.11 ansible_ssh_pass=Am3ric@ ansible_user=steve
+		stapp03 ansible_host=172.16.238.12 ansible_ssh_pass=BigGr33n ansible_user=banner
+
+thor@jump_host ~/ansible$ ansible -i inventory all -a "ls -ahl /opt/devops"
+		stapp03 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x 2 root root 4.0K Oct  7 10:25 .
+		drwxr-xr-x 1 root root 4.0K Oct  7 10:25 ..
+		stapp01 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x 2 root root 4.0K Oct  7 10:25 .
+		drwxr-xr-x 1 root root 4.0K Oct  7 10:25 ..
+		stapp02 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x 2 root root 4.0K Oct  7 10:25 .
+		drwxr-xr-x 1 root root 4.0K Oct  7 10:25 ..
+
+2. Verify source files
+thor@jump_host ~/ansible$ ls -ahl /usr/src/devops
+		total 20K
+		drwxr-xr-x 2 root root 4.0K Oct  7 10:26 .
+		drwxr-xr-x 1 root root 4.0K Oct  7 10:25 ..
+		-rw-r--r-- 1 root root   35 Oct  7 10:25 blog.txt
+		-rw-r--r-- 1 root root   22 Oct  7 10:25 media.txt
+		-rw-r--r-- 1 root root   27 Oct  7 10:25 story.txt
+
+3. Create playbook as per given requirement
+thor@jump_host ~/ansible$ pwd
+		/home/thor/ansible
+
+thor@jump_host ~/ansible$ vi playbook.yml
+ 
+thor@jump_host ~/ansible$ cat playbook.yml 
+		- name: Copy text files to Appservers
+
+		  hosts: all
+
+		  become: yes
+
+		  tasks:
+
+		    - name: Copy blog.txt to stapp01
+
+		      ansible.builtin.copy:
+
+		        src: /usr/src/devops/blog.txt
+
+		        dest: /opt/devops/
+
+		        owner: tony
+
+		        group: tony
+
+		        mode: "0777"
+
+		      when: inventory_hostname == "stapp01"
+
+		    - name: Copy story.txt to stapp02
+
+		      ansible.builtin.copy:
+
+		        src: /usr/src/devops/story.txt
+
+		        dest: /opt/devops/
+
+		        owner: steve
+
+		        group: steve
+
+		        mode: "0777"
+
+		      when: inventory_hostname == "stapp02"
+
+		    - name: Copy media.txt to stapp03
+
+		      ansible.builtin.copy:
+
+		        src: /usr/src/devops/media.txt
+
+		        dest: /opt/devops/
+
+		        owner: banner
+
+		        group: banner
+
+		        mode: "0777"
+
+		      when: inventory_hostname == "stapp03"
+
+4. Run/execute the playbook
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml 
+
+		PLAY [Copy text files to Appservers] ********************************************************************************************************
+
+		TASK [Gathering Facts] **********************************************************************************************************************
+		ok: [stapp03]
+		ok: [stapp02]
+		ok: [stapp01]
+
+		TASK [Copy blog.txt to stapp01] *************************************************************************************************************
+		skipping: [stapp02]
+		skipping: [stapp03]
+		changed: [stapp01]
+
+		TASK [Copy story.txt to stapp02] ************************************************************************************************************
+		skipping: [stapp03]
+		skipping: [stapp01]
+		changed: [stapp02]
+
+		TASK [Copy media.txt to stapp03] ************************************************************************************************************
+		skipping: [stapp01]
+		skipping: [stapp02]
+		changed: [stapp03]
+
+		PLAY RECAP **********************************************************************************************************************************
+		stapp01                    : ok=2    changed=1    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0   
+		stapp02                    : ok=2    changed=1    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0   
+		stapp03                    : ok=2    changed=1    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0   
+
+5. Verify the changes on App servers
+thor@jump_host ~/ansible$ ansible -i inventory all -a "ls -ahl /opt/devops"
+		stapp03 | CHANGED | rc=0 >>
+		total 12K
+		drwxr-xr-x 2 root   root   4.0K Oct  7 10:31 .
+		drwxr-xr-x 1 root   root   4.0K Oct  7 10:25 ..
+		-rwxrwxrwx 1 banner banner   22 Oct  7 10:31 media.txt
+		stapp02 | CHANGED | rc=0 >>
+		total 12K
+		drwxr-xr-x 2 root  root  4.0K Oct  7 10:31 .
+		drwxr-xr-x 1 root  root  4.0K Oct  7 10:25 ..
+		-rwxrwxrwx 1 steve steve   27 Oct  7 10:31 story.txt
+		stapp01 | CHANGED | rc=0 >>
+		total 12K
+		drwxr-xr-x 2 root root 4.0K Oct  7 10:31 .
+		drwxr-xr-x 1 root root 4.0K Oct  7 10:25 ..
+		-rwxrwxrwx 1 tony tony   35 Oct  7 10:31 blog.txt
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 87:
