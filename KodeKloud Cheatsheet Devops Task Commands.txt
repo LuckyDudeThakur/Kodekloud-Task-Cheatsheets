@@ -6925,22 +6925,117 @@ thor@jump_host ~/ansible$ ansible -i inventory all -a "ls -ahl /opt/devops"
 		-rwxrwxrwx 1 tony tony   35 Oct  7 10:31 blog.txt
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 87:
+Task 87: 08/Oct/2022
+
+ Deploy Node App on Kubernetes
+
+The Nautilus development team has completed development of one of the node applications, which they are planning to deploy on a Kubernetes cluster. They recently had a meeting with the DevOps team to share their requirements. Based on that, the DevOps team has listed out the exact requirements to deploy the app. Find below more details:
+
+    Create a deployment using gcr.io/kodekloud/centos-ssh-enabled:node image, replica count must be 2.
+
+    Create a service to expose this app, the service type must be NodePort, targetPort must be 8080 and nodePort should be 30012.
+
+    Make sure all the pods are in Running state after the deployment.
+
+    You can check the application by clicking on NodeApp button on top bar.
+
+You can use any labels as per your choice.
+
+Note: The kubectl on jump_host has been configured to work with the kubernetes cluster.
+
+
+1. Check kubectl utility configuration and working on jump_host
+thor@jump_host ~$ kubectl get all
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   51m
+
+thor@jump_host ~$ kubectl get namespace
+		NAME                 STATUS   AGE
+		default              Active   55m
+		kube-node-lease      Active   55m
+		kube-public          Active   55m
+		kube-system          Active   55m
+		local-path-storage   Active   54m
+ 
+thor@jump_host ~$ kubectl get pods
+		No resources found in default namespace.
+
+2. Create /tmp/node.yaml file as per requirement
+thor@jump_host ~$ vi /tmp/node.yaml
+ 
+thor@jump_host ~$ cat /tmp/node.yaml 
+		apiVersion: v1
+		kind: Service
+		metadata:
+		  name: node-service
+		spec:
+		  type: NodePort
+		  selector:
+		    app: node-app
+		  ports:
+		    - port: 80
+		      targetPort: 8080
+		      nodePort: 30012
+		---
+		apiVersion: apps/v1
+		kind: Deployment
+		metadata:
+		  name: node-deployment
+		spec:
+		  replicas: 2
+		  selector:
+		    matchLabels:
+		      app: node-app
+		  template:
+		    metadata:
+		      labels:
+		        app: node-app
+		    spec:
+		      containers:
+		        - name: node-container-datacenter
+		          image: gcr.io/kodekloud/centos-ssh-enabled:node
+		          ports:
+		            - containerPort: 80
+
+3. Create deployment and service.
+thor@jump_host ~$ kubectl create -f /tmp/node.yaml 
+		service/node-service created
+		deployment.apps/node-deployment created
+
+4. Verify deployment and service creation, Wait for deployment and pods  to running status
+thor@jump_host ~$ kubectl get all
+		NAME                                   READY   STATUS              RESTARTS   AGE
+		pod/node-deployment-5ffff8bcb4-ns2bc   0/1     ContainerCreating   0          28s
+		pod/node-deployment-5ffff8bcb4-vhp7z   0/1     ContainerCreating   0          28s
+
+		NAME                   TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+		service/kubernetes     ClusterIP   10.96.0.1      <none>        443/TCP        61m
+		service/node-service   NodePort    10.96.18.249   <none>        80:30012/TCP   28s
+
+		NAME                              READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/node-deployment   0/2     2            0           28s
+
+		NAME                                         DESIRED   CURRENT   READY   AGE
+		replicaset.apps/node-deployment-5ffff8bcb4   2         2         0       28s
+
+thor@jump_host ~$ kubectl get deploy
+		NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+		node-deployment   0/2     2            0           52s
+
+thor@jump_host ~$ kubectl get deploy
+		NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+		node-deployment   0/2     2            0           59s
+
+thor@jump_host ~$ kubectl get pods
+		NAME                               READY   STATUS    RESTARTS   AGE
+		node-deployment-5ffff8bcb4-ns2bc   1/1     Running   0          65s
+		node-deployment-5ffff8bcb4-vhp7z   1/1     Running   0          65s
+
+thor@jump_host ~$ kubectl get deploy
+		NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+		node-deployment   2/2     2            2           71s
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 88:
+Task 88 Onwards : Kodekloud Cheatsheat SrDevOps Task Commands.txt
 
---------------------------------------------------------------------------------------------------------------------------------
-Task 89:
-
---------------------------------------------------------------------------------------------------------------------------------
-Task 90:
-
---------------------------------------------------------------------------------------------------------------------------------
-Task 91:
-
---------------------------------------------------------------------------------------------------------------------------------
-Task 92:
-
---------------------------------------------------------------------------------------------------------------------------------
-Task 93:
+---------------------------------------------------------------------------------------------------------------------------------
