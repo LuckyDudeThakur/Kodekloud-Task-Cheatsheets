@@ -1,7 +1,163 @@
 Task 01 - Task 36 : Kodekloud Cheatsheat SysAdmin Task Commands.txt
 Task 37 - Task 87 : Kodekloud Cheatsheat DevOps Task Commands.txt
 --------------------------------------------------------------------------------------------------------------------------------
-Task 88:
+Task 88: 11/Oct/2022
+
+Init Containers in Kubernetes
+
+There are some applications that need to be deployed on Kubernetes cluster and these apps have some pre-requisites where some configurations need to be changed before deploying the app container. Some of these changes cannot be made inside the images so the DevOps team has come up with a solution to use init containers to perform these tasks during deployment. Below is a sample scenario that the team is going to test first.
+
+    Create a Deployment named as ic-deploy-devops.
+
+    Configure spec as replicas should be 1, labels app should be ic-devops, template's metadata lables app should be the same ic-devops.
+
+    The initContainers should be named as ic-msg-devops, use image debian, preferably with latest tag and use command '/bin/bash', '-c' and 'echo Init Done - Welcome to xFusionCorp Industries > /ic/news'. The volume mount should be named as ic-volume-devops and mount path should be /ic.
+
+    Main container should be named as ic-main-devops, use image debian, preferably with latest tag and use command '/bin/bash', '-c' and 'while true; do cat /ic/news; sleep 5; done'. The volume mount should be named as ic-volume-devops and mount path should be /ic.
+
+    Volume to be named as ic-volume-devops and it should be an emptyDir type.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+1. Check existing running services,deployment and pods
+thor@jump_host ~$ kubectl get all
+	NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+	service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   59m
+
+thor@jump_host ~$ kubectl get services
+	NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+	kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   59m
+
+thor@jump_host ~$ kubectl get deploy
+	No resources found in default namespace.
+
+thor@jump_host ~$ kubectl get pods
+	No resources found in default namespace.
+
+2. Create yaml file as per requirement.
+thor@jump_host ~$ vi /tmp/init.yml
+ 
+thor@jump_host ~$ cat /tmp/init.yml 
+		apiVersion: apps/v1
+
+		kind: Deployment
+
+		metadata:
+
+		  name: ic-deploy-devops
+
+		  labels:
+
+		    app: ic-devops
+
+		spec:
+
+		  replicas: 1
+
+		  selector:
+
+		    matchLabels:
+
+		      app: ic-devops
+
+		  template:
+
+		    metadata:
+
+		      labels:
+
+		        app: ic-devops
+
+		    spec:
+
+		      volumes:
+
+		        - name: ic-volume-devops
+
+		          emptyDir: {}
+
+		      initContainers:
+
+		        - name: ic-msg-devops
+
+		          image: debian:latest
+
+		          command:
+
+		            [
+
+		              "/bin/bash",
+
+		              "-c",
+
+		              "echo Init Done - Welcome to xFusionCorp Industries > /ic/news",
+
+		            ]
+
+		          volumeMounts:
+
+		            - name: ic-volume-devops
+
+		              mountPath: /ic
+
+		 
+
+		      containers:
+
+		        - name: ic-main-devops
+
+		          image: debian:latest
+
+		          command:
+
+		            [
+
+		              "/bin/bash",
+
+		              "-c",
+
+		              "while true; do cat /ic/news; sleep 5; done",
+
+		            ]
+
+		          volumeMounts:
+
+		            - name: ic-volume-devops
+
+		              mountPath: /ic
+
+3. Create pod and deployment 
+thor@jump_host ~$ kubectl create -f /tmp/init.yml 
+	deployment.apps/ic-deploy-devops created
+
+4. Wait for pod to get to running status
+thor@jump_host ~$ kubectl get pods -w
+	NAME                                READY   STATUS    RESTARTS   AGE
+	ic-deploy-devops-68f4dcbdfb-grg6v   1/1     Running   0          23s
+	^C
+
+thor@jump_host ~$ kubectl get deploy
+	NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+	ic-deploy-devops   1/1     1            1           60s
+
+thor@jump_host ~$ kubectl get pods
+	NAME                                READY   STATUS    RESTARTS   AGE
+	ic-deploy-devops-68f4dcbdfb-grg6v   1/1     Running   0          66s
+
+5. Validate the task by checking logs on created pod and cat on created file
+thor@jump_host ~$ kubectl logs -f ic-deploy-devops-68f4dcbdfb-grg6v
+		Init Done - Welcome to xFusionCorp Industries
+		Init Done - Welcome to xFusionCorp Industries
+		Init Done - Welcome to xFusionCorp Industries
+		Init Done - Welcome to xFusionCorp Industries
+		Init Done - Welcome to xFusionCorp Industries
+		Init Done - Welcome to xFusionCorp Industries
+		Init Done - Welcome to xFusionCorp Industries
+		^C
+
+thor@jump_host ~$ kubectl exec ic-deploy-devops-68f4dcbdfb-grg6v -- cat /ic/news
+		Init Done - Welcome to xFusionCorp Industries
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 89:
