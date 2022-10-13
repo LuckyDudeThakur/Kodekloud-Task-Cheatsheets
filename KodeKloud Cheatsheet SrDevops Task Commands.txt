@@ -160,7 +160,283 @@ thor@jump_host ~$ kubectl exec ic-deploy-devops-68f4dcbdfb-grg6v -- cat /ic/news
 		Init Done - Welcome to xFusionCorp Industries
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 89:
+Task 89: 13/Oct/2022
+
+Troubleshoot Issue With Pods
+
+One of the junior DevOps team members was working on to deploy a stack on Kubernetes cluster. Somehow the pod is not coming up and its failing with some errors. We need to fix this as soon as possible. Please look into it.
+
+    There is a pod named webserver and the container under it is named as nginx-container. It is using image nginx:latest
+
+    There is a sidecar container as well named sidecar-container which is using ubuntu:latest image.
+
+Look into the issue and fix it, make sure pod is in running state and you are able to access the app.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+
+Name:         webserver
+Namespace:    default
+Priority:     0
+Node:         kodekloud-control-plane/172.17.0.2
+Start Time:   Thu, 13 Oct 2022 12:03:02 +0000
+Labels:       app=web-app
+Annotations:  <none>
+Status:       Pending
+IP:           10.244.0.5
+IPs:
+  IP:  10.244.0.5
+Containers:
+  nginx-container:
+    Container ID:   
+    Image:          nginx:latests
+    Image ID:       
+    Port:           <none>
+    Host Port:      <none>
+    State:          Waiting
+      Reason:       ImagePullBackOff
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/log/nginx from shared-logs (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-2dgf4 (ro)
+  sidecar-container:
+    Container ID:  containerd://f186ca761ed3228d82850c85ff4fbf29b954ee664214699ac609288f80cfe75c
+    Image:         ubuntu:latest
+    Image ID:      docker.io/library/ubuntu@sha256:35fb073f9e56eb84041b0745cb714eff0f7b225ea9e024f703cab56aaa5c7720
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      sh
+      -c
+      while true; do cat /var/log/nginx/access.log /var/log/nginx/error.log; sleep 30; done
+    State:          Running
+      Started:      Thu, 13 Oct 2022 12:03:10 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/log/nginx from shared-logs (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-2dgf4 (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             False 
+  ContainersReady   False 
+  PodScheduled      True 
+Volumes:
+  shared-logs:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  default-token-2dgf4:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-2dgf4
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                 node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason     Age                From               Message
+  ----     ------     ----               ----               -------
+  Normal   Scheduled  61s                default-scheduler  Successfully assigned default/webserver to kodekloud-control-plane
+  Normal   Pulling    60s                kubelet            Pulling image "ubuntu:latest"
+  Normal   Started    53s                kubelet            Started container sidecar-container
+  Normal   Pulled     53s                kubelet            Successfully pulled image "ubuntu:latest" in 6.384820926s
+  Normal   Created    53s                kubelet            Created container sidecar-container
+  Normal   BackOff    26s (x3 over 53s)  kubelet            Back-off pulling image "nginx:latests"
+  Warning  Failed     26s (x3 over 53s)  kubelet            Error: ImagePullBackOff
+  Normal   Pulling    12s (x3 over 60s)  kubelet            Pulling image "nginx:latests"
+  Warning  Failed     11s (x3 over 60s)  kubelet            Failed to pull image "nginx:latests": rpc error: code = NotFound desc = failed to pull and unpack image "docker.io/library/nginx:latests": failed to resolve reference "docker.io/library/nginx:latests": docker.io/library/nginx:latests: not found
+  Warning  Failed     11s (x3 over 60s)  kubelet            Error: ErrImagePull
+
+
+1. Check pod running status using kubectl utility
+thor@jump_host ~$ kubectl get pods
+	NAME        READY   STATUS             RESTARTS   AGE
+	webserver   1/2     ImagePullBackOff   0          30s
+
+thor@jump_host ~$ kubectl get pods webserver
+	NAME        READY   STATUS         RESTARTS   AGE
+	webserver   1/2     ErrImagePull   0          39s
+
+2. Check pod configuration and try to indentify error
+thor@jump_host ~$ kubectl describe pod webserver
+		Name:         webserver
+		Namespace:    default
+		Priority:     0
+		Node:         kodekloud-control-plane/172.17.0.2
+		Start Time:   Thu, 13 Oct 2022 12:03:02 +0000
+		Labels:       app=web-app
+		Annotations:  <none>
+		Status:       Pending
+		IP:           10.244.0.5
+		IPs:
+		  IP:  10.244.0.5
+		Containers:
+		|------------------------------------------------------------------------------------------------------------------------
+		| nginx-container:
+		|   Container ID:   
+		|   Image:          nginx:latests											<-------- Error in container image name
+		|   Image ID:       
+		|   Port:           <none>
+		|   Host Port:      <none>
+		|   State:          Waiting
+		|     Reason:       ImagePullBackOff
+		|   Ready:          False
+		|   Restart Count:  0
+		|   Environment:    <none>
+		|   Mounts:
+		|     /var/log/nginx from shared-logs (rw)
+		|     /var/run/secrets/kubernetes.io/serviceaccount from default-token-2dgf4 (ro)
+		|------------------------------------------------------------------------------------------------------------------------      
+		  sidecar-container:
+		    Container ID:  containerd://f186ca761ed3228d82850c85ff4fbf29b954ee664214699ac609288f80cfe75c
+		    Image:         ubuntu:latest
+		    Image ID:      docker.io/library/ubuntu@sha256:35fb073f9e56eb84041b0745cb714eff0f7b225ea9e024f703cab56aaa5c7720
+		    Port:          <none>
+		    Host Port:     <none>
+		    Command:
+		      sh
+		      -c
+		      while true; do cat /var/log/nginx/access.log /var/log/nginx/error.log; sleep 30; done
+		    State:          Running
+		      Started:      Thu, 13 Oct 2022 12:03:10 +0000
+		    Ready:          True
+		    Restart Count:  0
+		    Environment:    <none>
+		    Mounts:
+		      /var/log/nginx from shared-logs (rw)
+		      /var/run/secrets/kubernetes.io/serviceaccount from default-token-2dgf4 (ro)
+		Conditions:
+		  Type              Status
+		  Initialized       True 
+		  Ready             False 
+		  ContainersReady   False 
+		  PodScheduled      True 
+		Volumes:
+		  shared-logs:
+		    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+		    Medium:     
+		    SizeLimit:  <unset>
+		  default-token-2dgf4:
+		    Type:        Secret (a volume populated by a Secret)
+		    SecretName:  default-token-2dgf4
+		    Optional:    false
+		QoS Class:       BestEffort
+		Node-Selectors:  <none>
+		Tolerations:     node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+		                 node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+		Events:
+		  Type     Reason     Age                From               Message
+		  ----     ------     ----               ----               -------
+		  Normal   Scheduled  61s                default-scheduler  Successfully assigned default/webserver to kodekloud-control-plane
+		  Normal   Pulling    60s                kubelet            Pulling image "ubuntu:latest"
+		  Normal   Started    53s                kubelet            Started container sidecar-container
+		  Normal   Pulled     53s                kubelet            Successfully pulled image "ubuntu:latest" in 6.384820926s
+		  Normal   Created    53s                kubelet            Created container sidecar-container
+		  Normal   BackOff    26s (x3 over 53s)  kubelet            Back-off pulling image "nginx:latests"
+		  Warning  Failed     26s (x3 over 53s)  kubelet            Error: ImagePullBackOff
+		  Normal   Pulling    12s (x3 over 60s)  kubelet            Pulling image "nginx:latests"
+		  Warning  Failed     11s (x3 over 60s)  kubelet            Failed to pull image "nginx:latests": rpc error: code = NotFound desc = failed to pull and unpack image "docker.io/library/nginx:latests": failed to resolve reference "docker.io/library/nginx:latests": docker.io/library/nginx:latests: not found
+		  Warning  Failed     11s (x3 over 60s)  kubelet            Error: ErrImagePull
+
+
+3. Edit the pod to change the container image name (using vi editor or default editor)
+thor@jump_host ~$ kubectl edit pod webserver
+		pod/webserver edited
+
+4. Wait for pod to running status
+thor@jump_host ~$ kubectl get pod webserver
+		NAME        READY   STATUS    RESTARTS   AGE
+		webserver   2/2     Running   0          2m22s
+
+thor@jump_host ~$ kubectl describe pod webserver
+		Name:         webserver
+		Namespace:    default
+		Priority:     0
+		Node:         kodekloud-control-plane/172.17.0.2
+		Start Time:   Thu, 13 Oct 2022 12:03:02 +0000
+		Labels:       app=web-app
+		Annotations:  <none>
+		Status:       Running
+		IP:           10.244.0.5
+		IPs:
+		  IP:  10.244.0.5
+		Containers:
+		|------------------------------------------------------------------------------------------------------------------------
+		| nginx-container:																										
+		|   Container ID:   containerd://96e18a2d97d0dcd78289713a2656e1150b4615dd6139fc56c293bc283e147616							
+		|   Image:          nginx:latest
+		|   Image ID:       docker.io/library/nginx@sha256:2f770d2fe27bc85f68fd7fe6a63900ef7076bc703022fe81b980377fe3d27b70
+		|   Port:           <none>
+		|   Host Port:      <none>
+		|   State:          Running																		<------------Error resolved, pod running
+		|     Started:      Thu, 13 Oct 2022 12:05:22 +0000
+		|   Ready:          True
+		|   Restart Count:  0
+		|   Environment:    <none>
+		|   Mounts:
+		|     /var/log/nginx from shared-logs (rw)
+		|     /var/run/secrets/kubernetes.io/serviceaccount from default-token-2dgf4 (ro)
+		|------------------------------------------------------------------------------------------------------------------------|
+		  sidecar-container:
+		    Container ID:  containerd://f186ca761ed3228d82850c85ff4fbf29b954ee664214699ac609288f80cfe75c
+		    Image:         ubuntu:latest
+		    Image ID:      docker.io/library/ubuntu@sha256:35fb073f9e56eb84041b0745cb714eff0f7b225ea9e024f703cab56aaa5c7720
+		    Port:          <none>
+		    Host Port:     <none>
+		    Command:
+		      sh
+		      -c
+		      while true; do cat /var/log/nginx/access.log /var/log/nginx/error.log; sleep 30; done
+		    State:          Running
+		      Started:      Thu, 13 Oct 2022 12:03:10 +0000
+		    Ready:          True
+		    Restart Count:  0
+		    Environment:    <none>
+		    Mounts:
+		      /var/log/nginx from shared-logs (rw)
+		      /var/run/secrets/kubernetes.io/serviceaccount from default-token-2dgf4 (ro)
+		Conditions:
+		  Type              Status
+		  Initialized       True 
+		  Ready             True 
+		  ContainersReady   True 
+		  PodScheduled      True 
+		Volumes:
+		  shared-logs:
+		    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+		    Medium:     
+		    SizeLimit:  <unset>
+		  default-token-2dgf4:
+		    Type:        Secret (a volume populated by a Secret)
+		    SecretName:  default-token-2dgf4
+		    Optional:    false
+		QoS Class:       BestEffort
+		Node-Selectors:  <none>
+		Tolerations:     node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+		                 node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+		Events:
+		  Type     Reason     Age                  From               Message
+		  ----     ------     ----                 ----               -------
+		  Normal   Scheduled  2m28s                default-scheduler  Successfully assigned default/webserver to kodekloud-control-plane
+		  Normal   Pulling    2m27s                kubelet            Pulling image "ubuntu:latest"
+		  Normal   Started    2m20s                kubelet            Started container sidecar-container
+		  Normal   Pulled     2m20s                kubelet            Successfully pulled image "ubuntu:latest" in 6.384820926s
+		  Normal   Created    2m20s                kubelet            Created container sidecar-container
+		  Normal   Pulling    99s (x3 over 2m27s)  kubelet            Pulling image "nginx:latests"
+		  Warning  Failed     98s (x3 over 2m27s)  kubelet            Failed to pull image "nginx:latests": rpc error: code = NotFound desc = failed to pull and unpack image "docker.io/library/nginx:latests": failed to resolve reference "docker.io/library/nginx:latests": docker.io/library/nginx:latests: not found
+		  Warning  Failed     98s (x3 over 2m27s)  kubelet            Error: ErrImagePull
+		  Normal   BackOff    62s (x6 over 2m20s)  kubelet            Back-off pulling image "nginx:latests"
+		  Warning  Failed     62s (x6 over 2m20s)  kubelet            Error: ImagePullBackOff
+
+thor@jump_host ~$ kubectl get pods
+	NAME        READY   STATUS    RESTARTS   AGE
+	webserver   2/2     Running   0          3m46s
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 90:
@@ -173,3 +449,30 @@ Task 92:
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 93:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 94:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 95:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 96:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 97:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 98:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 99:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 100:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 101:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 102:
