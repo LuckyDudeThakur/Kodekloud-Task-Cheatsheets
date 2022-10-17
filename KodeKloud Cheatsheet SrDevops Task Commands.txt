@@ -563,7 +563,146 @@ thor@jump_host ~$ kubectl get pv
 6. Validate task by View port on website
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 91:
+Task 91: 17/Oct/2022
+
+Resolve Git Merge Conflicts
+
+Sarah and Max were working on writting some stories which they have pushed to the repository. Max has recently added some new changes and is trying to push them to the repository but he is facing some issues. Below you can find more details:
+
+SSH into storage server using user max and password Max_pass123. Under /home/max you will find the story-blog repository. Try to push the changes to the origin repo and fix the issues. The story-index.txt must have titles for all 4 stories. Additionally, there is a typo in The Lion and the Mooose line where Mooose should be Mouse.
+
+Click on the Gitea UI button on the top bar. You should be able to access the Gitea page. You can login to Gitea server from UI using username sarah and password Sarah_pass123 or username max and password Max_pass123.
+
+Note: For these kind of scenarios requiring changes to be done in a web UI, please take screenshots so that you can share it with us for review in case your task is marked incomplete. You may also consider using a screen recording software such as loom.com to record and share your work.
+
+1. SSH to storage server with user max
+thor@jump_host ~$ ssh max@ststor01
+		The authenticity of host 'ststor01 (172.16.238.15)' can't be established.
+		ECDSA key fingerprint is SHA256:0z85j/k+4Nf8WKbHJzxo1AOv4FeRA8LPET2N3BEkYyo.
+		ECDSA key fingerprint is MD5:74:e6:4d:c4:b3:80:07:be:03:30:0a:bf:1e:eb:e6:82.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'ststor01,172.16.238.15' (ECDSA) to the list of known hosts.
+max@ststor01's password: 
+		Welcome to xFusionCorp Storage server.
+
+2. Go to local git repo and check git status
+max $ cd /home/max/story-blog/
+
+max (master)$ ls -ahl
+		total 32
+		drwxr-sr-x    3 max      max         4.0K Oct 17 14:06 .
+		drwxr-sr-x    1 max      max         4.0K Oct 17 14:06 ..
+		drwxr-sr-x    8 max      max         4.0K Oct 17 14:06 .git
+		-rw-r--r--    1 max      max          807 Oct 17 14:06 fox-and-grapes.txt
+		-rw-r--r--    1 max      max          792 Oct 17 14:06 frogs-and-ox.txt
+		-rw-r--r--    1 max      max         1.1K Oct 17 14:06 lion-and-mouse.txt
+		-rw-r--r--    1 max      max          102 Oct 17 14:06 story-index.txt
+
+max (master)$ git status
+		On branch master
+		Your branch is ahead of 'origin/master' by 1 commit.
+		  (use "git push" to publish your local commits)
+		nothing to commit, working directory clean
+ 
+3.Check story-index.txt file
+max (master)$ cat story-index.txt 
+		1. The Lion and the Mooose
+		2. The Frogs and the Ox
+		3. The Fox and the Grapes
+		4. The Donkey and the Dog
+
+4. Try to push the changes to know the error		
+max (master)$ git push
+		Username for 'http://git.stratos.xfusioncorp.com': max
+		Password for 'http://max@git.stratos.xfusioncorp.com': 
+		To http://git.stratos.xfusioncorp.com/sarah/story-blog.git
+		 ! [rejected]        master -> master (fetch first)
+		error: failed to push some refs to 'http://git.stratos.xfusioncorp.com/sarah/story-blog.git'
+		hint: Updates were rejected because the remote contains work that you do
+		hint: not have locally. This is usually caused by another repository pushing
+		hint: to the same ref. You may want to first integrate the remote changes
+		hint: (e.g., 'git pull ...') before pushing again.
+		hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+5. Conflict in between local repo and Gitex repo. Setglobal variables 
+
+max (master)$ git config --global --add user.email max@stratos.xfusioncorp.com
+
+max (master)$ git config --global --add user.name max
+
+max (master)$ git config -l
+	user.email=max@stratos.xfusioncorp.com
+	user.name=max
+	core.repositoryformatversion=0
+	core.filemode=true
+	core.bare=false
+	core.logallrefupdates=true
+	remote.origin.url=http://git.stratos.xfusioncorp.com/sarah/story-blog.git
+	remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*
+	branch.master.remote=origin
+	branch.master.merge=refs/heads/master
+
+6. Pull the changes from gitex to local 
+max (master)$ git  pull origin master
+	remote: Enumerating objects: 4, done.
+	remote: Counting objects: 100% (4/4), done.
+	remote: Compressing objects: 100% (3/3), done.
+	remote: Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+	Unpacking objects: 100% (3/3), done.
+	From http://git.stratos.xfusioncorp.com/sarah/story-blog
+	 * branch            master     -> FETCH_HEAD
+	   9f02757..7edc0ea  master     -> origin/master
+	Auto-merging story-index.txt
+	CONFLICT (add/add): Merge conflict in story-index.txt
+	Automatic merge failed; fix conflicts and then commit the result.
+
+7. Conflict while merging story-index.txt. Edit and clear those conflict
+
+max (master)$ vi story-index.txt
+
+max (master)$ cat story-index.txt 
+	1. The Lion and the Mouse
+	2. The Frogs and the Ox
+	3. The Fox and the Grapes
+	4. The Donkey and the Dog
+
+8. Push the changes back to remote repository
+
+max (master)$ git add story-index.txt 
+
+max (master)$ git commit -m "Fixed the issue"
+	[master cf96f89] Fixed the issue
+	 1 file changed, 6 deletions(-)
+
+max (master)$ git push origin  master
+	Username for 'http://git.stratos.xfusioncorp.com': max
+	Password for 'http://max@git.stratos.xfusioncorp.com': 
+	Counting objects: 3, done.
+	Delta compression using up to 36 threads.
+	Compressing objects: 100% (3/3), done.
+	Writing objects: 100% (3/3), 280 bytes | 0 bytes/s, done.
+	Total 3 (delta 2), reused 0 (delta 0)
+	remote: . Processing 1 references
+	remote: Processed 1 references in total
+	To http://git.stratos.xfusioncorp.com/sarah/story-blog.git
+	   acefab2..cf96f89  master -> master
+ 
+max (master)$ git status
+	On branch master
+	Your branch is up-to-date with 'origin/master'.
+	nothing to commit, working directory clean
+
+max (master)$ git pull origin  master
+	From http://git.stratos.xfusioncorp.com/sarah/story-blog
+	 * branch            master     -> FETCH_HEAD
+	Already up-to-date.
+ 
+max (master)$ git status
+	On branch master
+	Your branch is up-to-date with 'origin/master'.
+	nothing to commit, working directory clean
+
+max (master)$ 
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 92:
