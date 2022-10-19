@@ -705,7 +705,135 @@ max (master)$ git status
 max (master)$ 
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 92:
+Task 92: 19/Oct/2022
+
+Managing Jinja2 Templates Using Ansible
+
+One of the Nautilus DevOps team members is working on to develop a role for httpd installation and configuration. Work is almost completed, however there is a requirement to add a jinja2 template for index.html file. Additionally, the relevant task needs to be added inside the role. The inventory file ~/ansible/inventory is already present on jump host that can be used. Complete the task as per details mentioned below:
+
+a. Update ~/ansible/playbook.yml playbook to run the httpd role on App Server 1.
+
+b. Create a jinja2 template index.html.j2 under /home/thor/ansible/role/httpd/templates/ directory and add a line This file was created using Ansible on <respective server> (for example This file was created using Ansible on stapp01 in case of App Server 1). Also please make sure not to hard code the server name inside the template. Instead, use inventory_hostname variable to fetch the correct value.
+
+c. Add a task inside /home/thor/ansible/role/httpd/tasks/main.yml to copy this template on App Server 1 under /var/www/html/index.html. Also make sure that /var/www/html/index.html file's permissions are 0777.
+
+d. The user/group owner of /var/www/html/index.html file must be respective sudo user of the server (for example tony in case of stapp01).
+
+Note: Validation will try to run the playbook using command ansible-playbook -i inventory playbook.yml so please make sure the playbook works this way without passing any extra arguments.
+
+
+1. Go to mentioned folder and verify playbook and inventory
+
+thor@jump_host ~$ cd /home/thor/ansible/
+
+thor@jump_host ~/ansible$ ls -ahl
+		total 20K
+		drwxr-xr-x 3 thor thor 4.0K Oct 19 05:55 .
+		drwxr----- 1 thor thor 4.0K Oct 19 05:55 ..
+		-rw-r--r-- 1 thor thor  237 Oct 19 05:55 inventory
+		-rw-r--r-- 1 thor thor   73 Oct 19 05:55 playbook.yml
+		drwxr-xr-x 3 thor thor 4.0K Oct 19 05:55 role
+
+thor@jump_host ~/ansible$ cat inventory 
+		stapp01 ansible_host=172.16.238.10 ansible_user=tony ansible_ssh_pass=Ir0nM@n
+		stapp02 ansible_host=172.16.238.11 ansible_user=steve ansible_ssh_pass=Am3ric@
+		stapp03 ansible_host=172.16.238.12 ansible_user=banner ansible_ssh_pass=BigGr33n
+
+ 
+thor@jump_host ~/ansible$ cat playbook.yml 
+		---
+		- hosts: 
+		  become: yes
+		  become_user: root
+		  roles:
+		    - role/httpd
+
+2. Edit the playbook to add the mentioned host (stapp01)
+
+thor@jump_host ~/ansible$ vi playbook.yml 
+
+thor@jump_host ~/ansible$ cat playbook.yml 
+		---
+		- hosts: stapp01						<--------------------------
+		  become: yes
+		  become_user: root
+		  roles:
+		    - role/httpd
+
+3. Create Jinja2 template with mentioned content
+
+thor@jump_host ~/ansible$ vi /home/thor/ansible/role/httpd/templates/index.html.j2
+
+thor@jump_host ~/ansible$ cat /home/thor/ansible/role/httpd/templates/index.html.j2
+		This file was created using Ansible on {{ ansible_hostname }}
+
+
+4. Edit the mian.yml file to add a task to copy the Jinja2 template  
+
+thor@jump_host ~/ansible$ vi /home/thor/ansible/role/httpd/tasks/main.yml
+
+thor@jump_host ~/ansible$ cat /home/thor/ansible/role/httpd/tasks/main.yml
+		---
+		# tasks file for role/test
+
+		- name: install the latest version of HTTPD
+		  yum:
+		    name: httpd
+		    state: latest
+
+		- name: Start service httpd
+		  service:
+		    name: httpd
+		    state: started
+
+		- name: Use Jinja2 template to generate index.html
+		  template:
+		    src: /home/thor/ansible/role/httpd/templates/index.html.j2
+		    dest: /var/www/html/index.html
+		    mode: "0777"
+		    owner: "{{ ansible_user }}"
+		    group: "{{ ansible_user }}"
+
+
+5. Run the playbook
+
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml 
+
+		PLAY [stapp01] ******************************************************************************************************************************
+
+		TASK [Gathering Facts] **********************************************************************************************************************
+		ok: [stapp01]
+
+		TASK [role/httpd : install the latest version of HTTPD] *************************************************************************************
+		changed: [stapp01]
+
+		TASK [role/httpd : Start service httpd] *****************************************************************************************************
+		changed: [stapp01]
+
+		TASK [role/httpd : Use Jinja2 template to generate index.html] ******************************************************************************
+		changed: [stapp01]
+
+		PLAY RECAP **********************************************************************************************************************************
+		stapp01                    : ok=4    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+
+6. Validate the changes on app server
+
+thor@jump_host ~/ansible$ ansible stapp01 -i inventory  -a "cat /var/www/html/index.html"
+		stapp01 | CHANGED | rc=0 >>
+		This file was created using Ansible on stapp01
+
+thor@jump_host ~/ansible$ ansible stapp01 -i inventory  -a "ls -ahl /var/www/html/index.html"
+		stapp01 | CHANGED | rc=0 >>
+		-rwxrwxrwx 1 tony tony 47 Oct 19 06:03 /var/www/html/index.html
+
+thor@jump_host ~/ansible$ ansible stapp02 -i inventory  -a "cat /var/www/html/index.html"
+		stapp02 | FAILED | rc=1 >>
+		cat: /var/www/html/index.html: No such file or directorynon-zero return code
+
+thor@jump_host ~/ansible$ ansible stapp03 -i inventory  -a "cat /var/www/html/index.html"
+		stapp03 | FAILED | rc=1 >>
+		cat: /var/www/html/index.html: No such file or directorynon-zero return code
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 93:
