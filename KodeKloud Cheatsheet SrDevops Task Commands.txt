@@ -836,7 +836,75 @@ thor@jump_host ~/ansible$ ansible stapp03 -i inventory  -a "cat /var/www/html/in
 		cat: /var/www/html/index.html: No such file or directorynon-zero return code
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 93:
+Task 93: 20/Oct/2022
+
+Ansible Inventory Update
+
+The Nautilus DevOps team has started testing their Ansible playbooks on different servers within the stack. They have placed some playbooks under /home/thor/playbook/ directory on jump host which they want to test. Some of these playbooks have already been tested on different servers, but now they want to test them on app server 3 in Stratos DC. However, they first need to create an inventory file so that Ansible can connect to the respective app. Below are some requirements:
+
+a. Create an ini type Ansible inventory file /home/thor/playbook/inventory on jump host.
+
+b. Add App Server 3 in this inventory along with required variables that are needed to make it work.
+
+c. The inventory hostname of the host should be the server name as per the wiki, for example stapp01 for app server 1 in Stratos DC.
+
+Note: Validation will try to run the playbook using command ansible-playbook -i inventory playbook.yml so please make sure the playbook works this way without passing any extra arguments.
+
+
+1. Verify mentioned playbook and other files 
+
+thor@jump_host ~$ cd /home/thor/playbook/
+
+thor@jump_host ~/playbook$ ls -ahl
+		total 16K
+		drwxr-xr-x 2 thor thor 4.0K Oct 20 09:36 .
+		drwxr----- 1 thor thor 4.0K Oct 20 09:36 ..
+		-rw-r--r-- 1 thor thor   36 Oct 20 09:36 ansible.cfg
+		-rw-r--r-- 1 thor thor  250 Oct 20 09:36 playbook.yml
+
+thor@jump_host ~/playbook$ cat playbook.yml 
+		---
+		- hosts: all
+		  become: yes
+		  become_user: root
+		  tasks:
+		    - name: Install httpd package    
+		      yum: 
+		        name: httpd 
+		        state: installed
+		    
+		    - name: Start service httpd
+		      service:
+		        name: httpd
+		        state: started
+
+2. Create the mentioned inventory file with App Server 3 details
+
+thor@jump_host ~/playbook$ vi /home/thor/playbook/inventory
+
+thor@jump_host ~/playbook$ cat /home/thor/playbook/inventory
+		stapp03 ansible_host=172.16.238.12 ansible_ssh_pass=BigGr33n  ansible_user=banner
+
+3. Exectue the playbook and verify.
+
+thor@jump_host ~/playbook$ ansible-playbook -i inventory playbook.yml
+
+		PLAY [all] **********************************************************************************************************************************
+
+		TASK [Gathering Facts] **********************************************************************************************************************
+		ok: [stapp03]
+
+		TASK [Install httpd package] ****************************************************************************************************************
+		changed: [stapp03]
+
+		TASK [Start service httpd] ******************************************************************************************************************
+		changed: [stapp03]
+
+		PLAY RECAP **********************************************************************************************************************************
+		stapp03                    : ok=3    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+thor@jump_host ~/playbook$
+
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 94:
