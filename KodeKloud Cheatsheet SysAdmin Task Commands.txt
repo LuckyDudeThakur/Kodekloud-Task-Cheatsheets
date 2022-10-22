@@ -87,7 +87,7 @@ For DB Server
 				  ssh peter@stdb01
 --------------------------------------------------------------------------------------------------------------------------------------------
 
-Task 8 : 4 /Jan/2021
+Task 8 : 4/Jan/2022
 Linux User Expiry
 
 	ssh tony@stapp01
@@ -289,7 +289,7 @@ b. Add a cron */5 * * * * echo hello > /tmp/cron_text for root user.
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 
-Task 15 : 13 / Jan /2022
+Task 15 : 13/Jan/2022
 Linux User Files
 
 Copy user files (not directories) for user ravi from /home/userdata to /ecommerce with directory structure in place
@@ -1394,7 +1394,7 @@ b. Using logrotate configure httpd logs rotation to monthly and keep only 3 rota
 			Feb 01 15:55:44 stapp03.stratos.xfusioncorp.com systemd[1]: httpd.service: got STATUS=Processing requests...
 
 --------------------------------------------------------------------------------------------------------------------------------------------
-Task 32:2/Feb/2022  <Under Review>
+Task 32:2/Feb/2022  
 Configure Local Yum repos
 The Nautilus production support team and security team had a meeting last month in which they decided to use local yum repositories for maintaing packages needed for their servers. For now they have decided to configure a local yum repo on Nautilus Backup Server. This is one of the pending items from last month, so please configure a local yum repository on Nautilus Backup Server as per details given below.
 
@@ -2087,7 +2087,7 @@ xFusionCorp Industries has planned to set up a common email server in Stork DC. 
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------
-Task 35 : 
+Task 35 : 7/Feb/2022
  IPtables Installation And Configuration
 
 We have one of our websites up and running on our Nautilus infrastructure in Stratos DC. Our security team has raised a concern that right now Apache’s port i.e 3000 is open for all since there is no firewall installed on these hosts. So we have decided to add some security layer for these hosts and after discussions and recommendations we have come up with the following requirements:
