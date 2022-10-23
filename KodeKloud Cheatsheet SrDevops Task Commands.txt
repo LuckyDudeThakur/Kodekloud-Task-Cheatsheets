@@ -933,7 +933,60 @@ Note: For these kind of scenarios requiring changes to be done in a web UI, plea
 5. The new forked repo will be under jon/story-blog
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 95:
+Task 95: 23/Oct/2022
+
+Create a Docker Image From Container
+
+One of the Nautilus developer was working to test new changes on a container. He wants to keep a backup of his changes to the container. A new request has been raised for the DevOps team to create a new image from this container. Below are more details about it:
+
+a. Create an image apps:xfusion on Application Server 2 from a container ubuntu_latest that is running on same server.
+
+
+1. 1. Login on app server  & Switch to  root user
+
+thor@jump_host ~$ ssh steve@stapp02
+		The authenticity of host 'stapp02 (172.16.238.11)' can't be established.
+		ECDSA key fingerprint is SHA256:LmeMEQk6Mx7vqZWW6o6Knsvsgqwb4FlOk7e/cSvtfms.
+		ECDSA key fingerprint is MD5:b8:e8:31:0f:29:8b:c7:be:26:6e:42:aa:56:51:29:8c.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'stapp02,172.16.238.11' (ECDSA) to the list of known hosts.
+		steve@stapp02's password: 
+
+[steve@stapp02 ~]$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for steve: 
+
+
+2. Check existing docker container ubuntu_latest running status 
+
+[root@stapp02 ~]# docker ps 
+		CONTAINER ID   IMAGE     COMMAND   CREATED              STATUS              PORTS     NAMES
+		e2d2e33ed57c   ubuntu    "bash"    About a minute ago   Up About a minute             ubuntu_latest
+
+3. Check current docker images on your system
+
+[root@stapp02 ~]# docker images
+		REPOSITORY   TAG       IMAGE ID       CREATED       SIZE
+		ubuntu       latest    216c552ea5ba   2 weeks ago   77.8MB
+
+4. Create new image from given contianer as per task
+
+[root@stapp02 ~]# docker commit ubuntu_latest apps:xfusion
+		sha256:2158e1542b17e48950a0c1fd45ab50729fbd9dd344210b5771b0113955100168
+
+5. Verify and validate the new  docker image created on your system
+
+[root@stapp02 ~]# docker images
+		REPOSITORY   TAG       IMAGE ID       CREATED         SIZE
+		apps         xfusion   2158e1542b17   6 seconds ago   116MB
+		ubuntu       latest    216c552ea5ba   2 weeks ago     77.8MB
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 96:
