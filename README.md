@@ -102,3 +102,5 @@ Task 92 : 19/Oct/2022 : Managing Jinja2 Templates Using Ansible
 Task 93 : 20/Oct/2022 : Ansible Inventory Update  
 Task 94 : 22/Oct/2022 : Git Fork a Repository  
 Task 95 : 23/Oct/2022 : Create a Docker Image From Container  
+Task 96 : 25/Oct/2022 : Puppet Multi-Packages Installation  
+

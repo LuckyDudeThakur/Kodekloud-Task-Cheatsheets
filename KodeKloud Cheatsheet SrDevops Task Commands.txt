@@ -989,7 +989,104 @@ thor@jump_host ~$ ssh steve@stapp02
 		ubuntu       latest    216c552ea5ba   2 weeks ago     77.8MB
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 96:
+Task 96: 25/Oct/2022
+
+Puppet Multi-Packages Installation
+
+Some new changes need to be made on some of the app servers in Stratos Datacenter. There are some packages that need to be installed on the app server 2. We want to install these packages using puppet only.
+
+    Puppet master is already installed on Jump Server.
+
+    Create a puppet programming file blog.pp under /etc/puppetlabs/code/environments/production/manifests on master node i.e on Jump Server and perform below mentioned tasks using the same.
+
+    Define a class multi_package_node for agent node 2 i.e app server 2. Install net-tools and unzip packages on the agent node 2.
+
+Notes: :- Please make sure to run the puppet agent test using sudo on agent nodes, otherwise you can face certificate issues. In that case you will have to clean the certificates first and then you will be able to run the puppet agent test.
+
+:- Before clicking on the Check button please make sure to verify puppet server and puppet agent services are up and running on the respective servers, also please make sure to run puppet agent test to apply/test the changes manually first.
+
+:- Please note that once lab is loaded, the puppet server service should start automatically on puppet master server, however it can take upto 2-3 minutes to start.
+
+
+1. Switch to root user on jump host to create puppet programming file
+
+thor@jump_host ~$ sudo su - 
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for thor: 
+
+2. Go to mentione folder location and create blog.pp  file with given requirements
+
+root@jump_host ~# cd /etc/puppetlabs/code/environments/production/manifests/
+ 
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ls -ahl
+		total 8.0K
+		drwxr-xr-x 1 puppet puppet 4.0K Jul 13  2021 .
+		drwxr-xr-x 1 puppet puppet 4.0K Aug  9  2021 ..
+ 
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# vi blog.pp
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat blog.pp 
+		class multi_package_node {
+		$multi_package = [ 'net-tools', 'unzip']
+		    package { $multi_package: ensure => 'installed' }
+		}
+
+		node 'stapp02.stratos.xfusioncorp.com' {
+		  include multi_package_node
+		}
+
+3. Login to ap server 2 and switch to root user
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh steve@stapp02
+		The authenticity of host 'stapp02 (172.16.238.11)' can't be established.
+		ECDSA key fingerprint is SHA256:JGrKQGk9+m0eDIxj8Ttwk2oL5abYgUcCazjXSp36dxs.
+		ECDSA key fingerprint is MD5:ec:b0:32:f5:c4:6d:68:07:03:f0:ad:7a:a6:a7:f9:47.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'stapp02,172.16.238.11' (ECDSA) to the list of known hosts.
+		steve@stapp02's password: 
+
+[steve@stapp02 ~]$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for steve: 
+
+4. Check if given packages are already  installed
+
+[root@stapp02 ~]# rpm -qa|grep -e net-tools -e unzip
+
+5. Run the puppet agent to pull configuration from puppet server 
+
+[root@stapp02 ~]# puppet agent -tv
+		Info: Using configured environment 'production'
+		Info: Retrieving pluginfacts
+		Info: Retrieving plugin
+		Info: Retrieving locales
+		Info: Caching catalog for stapp02.stratos.xfusioncorp.com
+		Info: Applying configuration version '1666708349'
+		Notice: /Stage[main]/Multi_package_node/Package[net-tools]/ensure: created
+		Notice: /Stage[main]/Multi_package_node/Package[unzip]/ensure: created
+		Notice: Applied catalog in 14.67 seconds
+
+6. Validate the task by checking required packages installed
+
+[root@stapp02 ~]# rpm -qa|grep -e net-tools -e unzip
+		unzip-6.0-24.el7_9.x86_64
+		net-tools-2.0-0.25.20131004git.el7.x86_64
+
+[root@stapp02 ~]#
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 97:
