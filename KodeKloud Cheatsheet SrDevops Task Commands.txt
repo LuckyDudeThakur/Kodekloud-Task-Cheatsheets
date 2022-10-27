@@ -1089,7 +1089,101 @@ root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh steve
 [root@stapp02 ~]#
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 97:
+Task 97: 27/Oct/2022
+
+Puppet Add Users
+
+
+A new teammate has joined the Nautilus application development team, the application development team has asked the DevOps team to create a new user account for the new teammate on application server 1 in Stratos Datacenter. The task needs to be performed using Puppet only. You can find more details below about the task.
+
+Create a Puppet programming file official.pp under /etc/puppetlabs/code/environments/production/manifests directory on master node i.e Jump Server, and using Puppet user resource add a user on all app servers as mentioned below:
+
+    Create a user ravi and set its UID to 1879 on Puppet agent nodes 1 i.e App Servers 1.
+
+Notes: :- Please make sure to run the puppet agent test using sudo on agent nodes, otherwise you can face certificate issues. In that case you will have to clean the certificates first and then you will be able to run the puppet agent test.
+
+:- Before clicking on the Check button please make sure to verify puppet server and puppet agent services are up and running on the respective servers, also please make sure to run puppet agent test to apply/test the changes manually first.
+
+:- Please note that once lab is loaded, the puppet server service should start automatically on puppet master server, however it can take upto 2-3 minutes to start.
+
+
+1. Switch to root user and go to mentioned folder
+
+thor@jump_host ~$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for thor: 
+ 
+root@jump_host ~# cd /etc/puppetlabs/code/environments/production/manifests/
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ls -ahl
+		total 8.0K
+		drwxr-xr-x 1 puppet puppet 4.0K Jul 13  2021 .
+		drwxr-xr-x 1 puppet puppet 4.0K Aug  9  2021 ..
+
+2. Create the mentioned puppet programming file with given requirements 
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# vi official.pp
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat official.pp
+		class user_creator {
+			user { 'ravi':
+						ensure   => present,
+						uid => 1879,
+		  }
+		}
+
+		node 'stapp01.stratos.xfusioncorp.com' {
+			include user_creator
+		}
+
+3. Validate the puppet programming file 
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# puppet parser validate official.pp 
+
+4. Login to app server 01 and switch to root 
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh tony@stapp01
+		The authenticity of host 'stapp01 (172.16.238.10)' can't be established.
+		ECDSA key fingerprint is SHA256:CxGn3WKmroQOoXAC5aufEdVzoDTknATLtoQHDcP0WEI.
+		ECDSA key fingerprint is MD5:f1:cb:d0:b8:e6:b4:74:04:70:d2:ba:4f:12:ce:a3:23.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'stapp01,172.16.238.10' (ECDSA) to the list of known hosts.
+		tony@stapp01's password: 
+
+[tony@stapp01 ~]$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for tony: 
+
+5. Run puppet agent to pull latest configuration from puppet server
+
+[root@stapp01 ~]# puppet agent -tv
+		Info: Using configured environment 'production'
+		Info: Retrieving pluginfacts
+		Info: Retrieving plugin
+		Info: Retrieving locales
+		Info: Caching catalog for stapp01.stratos.xfusioncorp.com
+		Info: Applying configuration version '1666854162'
+		Notice: /Stage[main]/User_creator/User[ravi]/ensure: created
+		Notice: Applied catalog in 0.06 seconds
+
+6. Verify the new user created 
+
+[root@stapp01 ~]# cat /etc/passwd |grep ravi
+	ravi:x:1879:1879::/home/ravi:/bin/bash
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 98:
