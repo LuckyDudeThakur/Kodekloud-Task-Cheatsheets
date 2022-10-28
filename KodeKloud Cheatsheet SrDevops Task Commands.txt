@@ -1186,7 +1186,111 @@ root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh tony@
 	ravi:x:1879:1879::/home/ravi:/bin/bash
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 98:
+Task 98: 28/Oct/2022
+
+Kubernetes Time Check Pod
+
+The Nautilus DevOps team want to create a time check pod in a particular Kubernetes namespace and record the logs. This might be initially used only for testing purposes, but later can be implemented in an existing cluster. Please find more details below about the task and perform it.
+
+    Create a pod called time-check in the datacenter namespace. This pod should run a container called time-check, container should use the busybox image with latest tag only and remember to mention tag i.e busybox:latest.
+
+    Create a config map called time-config with the data TIME_FREQ=12 in the same namespace.
+
+    The time-check container should run the command: while true; do date; sleep $TIME_FREQ;done and should write the result to the location /opt/dba/time/time-check.log. Remember you will also need to add an environmental variable TIME_FREQ in the container, which should pick value from the config map TIME_FREQ key.
+
+    Create a volume log-volume and mount the same on /opt/dba/time within the container.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+1. Check kubectl utility config on jump server 
+
+thor@jump_host ~$ kubectl get namespace
+		NAME                 STATUS   AGE
+		default              Active   115m
+		kube-node-lease      Active   115m
+		kube-public          Active   115m
+		kube-system          Active   115m
+		local-path-storage   Active   115m
+
+thor@jump_host ~$ kubectl get pods
+	No resources found in default namespace.
+
+2. Create new namespace 
+
+thor@jump_host ~$ kubectl create namespace datacenter
+	namespace/datacenter created
+
+thor@jump_host ~$ kubectl get namespace
+		NAME                 STATUS   AGE
+		datacenter           Active   4s
+		default              Active   116m
+		kube-node-lease      Active   116m
+		kube-public          Active   116m
+		kube-system          Active   116m
+		local-path-storage   Active   115m
+
+3. Create YAML file as per given requirements 
+
+thor@jump_host ~$ vi /tmp/time_check.yaml
+ 
+thor@jump_host ~$ cat /tmp/time_check.yaml 
+
+		apiVersion: v1
+		kind: Namespace
+		metadata:
+		  name: datacenter
+
+		---
+		apiVersion: v1
+		kind: ConfigMap
+		metadata:
+		  name: time-config
+		  namespace: datacenter
+		data:
+		    TIME_FREQ: "12"
+
+		---    
+		apiVersion: v1
+		kind: Pod
+		metadata:
+		  name: time-check
+		  namespace: datacenter
+		spec:
+		  containers:
+		    - name: time-check
+		      image: busybox:latest
+		      command: [ "sh", "-c", "while true; do date; sleep $TIME_FREQ;done >> /opt/dba/time/time-check.log" ]
+		      env:
+		        - name: TIME_FREQ
+		          valueFrom:
+		            configMapKeyRef:
+		              name: time-config
+		              key: TIME_FREQ
+		      volumeMounts:
+		      - name: log-volume
+		        mountPath: /opt/dba/time
+		  volumes:
+		    - name: log-volume
+		      emptyDir : {}
+		  restartPolicy: Never
+
+4. Create Pod using the YAML file
+
+thor@jump_host ~$ kubectl create -f  /tmp/time_check.yaml 
+		configmap/time-config created
+		pod/time-check created
+		Error from server (AlreadyExists): error when creating "/tmp/time_check.yaml": namespaces "datacenter" already exists
+
+5. Verify the pod running status 
+
+thor@jump_host ~$ kubectl get pods -n datacenter
+		NAME         READY   STATUS    RESTARTS   AGE
+		time-check   1/1     Running   0          29s
+
+thor@jump_host ~$ kubectl get pods -n datacenter
+		NAME         READY   STATUS    RESTARTS   AGE
+		time-check   1/1     Running   0          32s
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 99:
