@@ -107,3 +107,4 @@ Task 97 : 27/Oct/2022 : Puppet Add Users
 Task 98 : 28/Oct/2022 : Kubernetes Time Check Pod  
 Task 99 : 04/Nov/2022 : Deploy MySQL on Kubernetes  
 Task 100: 05/Nov/2022 : Git Install and Create Bare Repository  
+Task 101: 16/Nov/2022 : Deploy Nginx and Phpfpm on Kubernetes  
