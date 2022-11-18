@@ -2082,9 +2082,71 @@ thor@jump_host ~$ kubectl cp /opt/index.php nginx-phpfpm:/var/www/html --contain
 
 6. Validate by clicking on the App Button top right side side of the terminal. If the app is running then the task is done.
 
-
 --------------------------------------------------------------------------------------------------------------------------------
-Task 102:
+Task 102: 18/Nov/2022
+
+Run a Docker Container
+
+
+Nautilus DevOps team is testing some applications deployment on some of the application servers. They need to deploy a nginx container on Application Server 3. Please complete the task as per details given below:
+
+    On Application Server 3 create a container named nginx_3 using image nginx with alpine tag and make sure container is in running state.
+
+1.Login to app server 3 and switch to root user 
+
+thor@jump_host ~$ ssh banner@stapp03
+		The authenticity of host 'stapp03 (172.16.238.12)' can't be established.
+		ECDSA key fingerprint is SHA256:Zf7WuEVcvpXAR1ITq9DoENoxEcCaCyV0Y4JyuAJXgFc.
+		ECDSA key fingerprint is MD5:48:49:21:90:b7:aa:00:ed:df:0f:a2:fb:b0:5d:92:8f.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'stapp03,172.16.238.12' (ECDSA) to the list of known hosts.
+		banner@stapp03's password: 
+
+[banner@stapp03 ~]$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for banner: 
+
+2. Check existing running docker images and containers
+
+[root@stapp03 ~]# docker ps
+		CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+[root@stapp03 ~]# docker images
+		REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
+
+3. Run the docker container as per requirement using the given image and name  
+
+[root@stapp03 ~]# docker run -d --name nginx_3 -p 8080:80 nginx:alpine
+		Unable to find image 'nginx:alpine' locally
+		alpine: Pulling from library/nginx
+		ca7dd9ec2225: Pull complete 
+		76a48b0f5898: Pull complete 
+		2f12a0e7c01d: Pull complete 
+		1a7b9b9bbef6: Pull complete 
+		b704883c57af: Pull complete 
+		4342b1ab302e: Pull complete 
+		Digest: sha256:455c39afebd4d98ef26dd70284aa86e6810b0485af5f4f222b19b89758cabf1e
+		Status: Downloaded newer image for nginx:alpine
+		d022a38a3abd331cea55f3b89f1da16373a3b58d34f9f6d08d554c37545554a5
+
+4. Check the docker running status
+
+[root@stapp03 ~]# docker ps
+		CONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS         PORTS                  NAMES
+		d022a38a3abd   nginx:alpine   "/docker-entrypoint.…"   8 seconds ago   Up 5 seconds   0.0.0.0:8080->80/tcp   nginx_3
+
+[root@stapp03 ~]# docker images
+		REPOSITORY   TAG       IMAGE ID       CREATED      SIZE
+		nginx        alpine    19dd4d73108a   6 days ago   23.5MB
+
+5. Validate by clicking on the view port top right side side of the terminal and select port 80. If the container is running then we see nginx page and the task is done.
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 103:
