@@ -2149,7 +2149,80 @@ thor@jump_host ~$ ssh banner@stapp03
 5. Validate by clicking on the view port top right side side of the terminal and select port 80. If the container is running then we see nginx page and the task is done.
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 103:
+Task 103: 20/Nov/2022
+
+Git Create Branches
+
+Nautilus developers are actively working on one of the project repositories, /usr/src/kodekloudrepos/apps. They recently decided to implement some new features in the application, and they want to maintain those new changes in a separate branch. Below are the requirements that have been shared with the DevOps team:
+
+    On Storage server in Stratos DC create a new branch xfusioncorp_apps from master branch in /usr/src/kodekloudrepos/apps git repo.
+
+    Please do not try to make any changes in code.
+
+
+1. Login to Storage server and switch to root user 
+
+thor@jump_host ~$ ssh natasha@ststor01
+		The authenticity of host 'ststor01 (172.16.238.15)' can't be established.
+		ECDSA key fingerprint is SHA256:bNwXFd+JrQ3QZwtPJNbAxE+nIRPwx+rAC8iwQL2UNUs.
+		ECDSA key fingerprint is MD5:a1:23:7e:da:b3:40:86:fc:22:47:b7:f1:15:7d:ab:b3.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'ststor01,172.16.238.15' (ECDSA) to the list of known hosts.
+		natasha@ststor01's password: 
+
+[natasha@ststor01 ~]$ sudo su - 
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for natasha: 
+
+2. Go to mentioned repository
+[root@ststor01 ~]# cd /usr/src/kodekloudrepos/apps/
+
+3. List current branches
+
+[root@ststor01 apps]# git branch -a
+		* kodekloud_apps
+		  master
+		  remotes/origin/master
+
+4. Switch to master branch as we are required to create new branch from master 
+
+[root@ststor01 apps]# git checkout master
+		Switched to branch 'master'
+
+[root@ststor01 apps]# git branch -a
+		  kodekloud_apps
+		* master
+		  remotes/origin/master
+
+[root@ststor01 apps]# git status
+		# On branch master
+		nothing to commit, working directory clean
+
+5. Create the mentioned branch and checkout to it .
+
+[root@ststor01 apps]# git branch xfusioncorp_apps
+ 
+[root@ststor01 apps]# git checkout xfusioncorp_apps
+		Switched to branch 'xfusioncorp_apps'
+
+6. Validate the task 
+
+[root@ststor01 apps]# git branch -a
+		  kodekloud_apps
+		  master
+		* xfusioncorp_apps
+		  remotes/origin/master
+
+[root@ststor01 apps]# git status
+		# On branch xfusioncorp_apps
+		nothing to commit, working directory clean
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 104:
