@@ -2225,7 +2225,715 @@ thor@jump_host ~$ ssh natasha@ststor01
 		nothing to commit, working directory clean
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 104:
+Task 104: 28/Nov/2022
+
+Kubernetes Troubleshooting
+
+One of the Nautilus DevOps team members was working on to update an existing Kubernetes template. Somehow, he made some mistakes in the template and it is failing while applying. We need to fix this as soon as possible, so take a look into it and make sure you are able to apply it without any issues. Also, do not remove any component from the template like pods/deployments/volumes etc.
+
+/home/thor/mysql_deployment.yml is the template that needs to be fixed.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+thor@jump_host ~$ pwd 
+		/home/thor
+thor@jump_host ~$ ls -ahl
+		total 36K
+		drwxr----- 1 thor thor 4.0K Nov 28 02:58 .
+		drwxr-xr-x 1 root root 4.0K Oct 31  2020 ..
+		-rwxrwx--- 1 thor thor   18 Oct 30  2018 .bash_logout
+		-rwxrwx--- 1 thor thor  193 Oct 30  2018 .bash_profile
+		-rwxrwx--- 1 thor thor  510 Nov 28 02:58 .bashrc
+		drwxrwx--- 1 thor thor 4.0K Oct 31  2020 .config
+		drwxrwx--- 2 thor thor 4.0K Nov 28 02:58 .kube
+		-rw-r--r-- 1 thor thor 2.3K Nov 28 02:58 mysql_deployment.yml
+		drwx------ 2 thor thor 4.0K Nov 28 02:58 .ssh
+
+thor@jump_host ~$ kubectl get all
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   6h6m
+ 
+thor@jump_host ~$ kubectl get secrets
+		NAME                  TYPE                                  DATA   AGE
+		default-token-z8mrm   kubernetes.io/service-account-token   3      6h6m
+		mysql-db-url          Opaque                                1      37s
+		mysql-root-pass       Opaque                                1      38s
+		mysql-user-pass       Opaque                                2      37s
+ 
+thor@jump_host ~$ cat mysql_deployment.yml 
+		apiVersion: apps/v1 
+		kind: PersistentVolume            
+		metadata:
+		  name: mysql-pv
+		  labels: 
+		  type: local 
+		spec:
+		  storageClassName: standard      
+		  capacity:
+		    storage: 250Mi
+		  accessModes: 
+		    - ReadWriteOnce
+		  hostPath:                       
+		  path: "/mnt/data" 
+		  persistentVolumeReclaimPolicy:  
+		  -  Retain  
+		---    
+		apiVersion: apps/v1 
+		kind: PersistentVolumeClaim 
+		metadata:                          
+		  name: mysql-pv-claim
+		  labels:
+		  app: mysql-app 
+		spec:                              
+		  storageClassName: standard       
+		  accessModes:
+		    - ReadWriteOnce                
+		  resources:
+		    requests: 
+		      storage: 250MB 
+		---
+		apiVersion: v1                    
+		kind: Service                      
+		metadata:
+		  name: mysql         
+		  labels:             
+		    app: mysql-app
+		spec:
+		  type: NodePort
+		  ports:
+		    - targetPort: 3306
+		      port: 3306
+		      nodePort: 30011
+		  selector:    
+		    app: mysql-app
+		  tier: mysql
+		---
+		apiVersion: v1 
+		kind: Deployment            
+		metadata:
+		  name: mysql-deployment       
+		  labels:                       
+		    app: mysql-app 
+		spec:
+		  selector:
+		    matchLabels:
+		      app: mysql-app
+		    tier: mysql 
+		  strategy:
+		    type: Recreate
+		  template:                    
+		    metadata:
+		      labels:                  
+		        app: mysql-app
+		      tier: mysql 
+		    spec:                       
+		      containers: 
+		      - images: mysql:5.6 
+		        name: mysql
+		        env:                        
+		        - name: MYSQL_ROOT_PASSWORD 
+		          valueFrom:                
+		          secretKeyRef: 
+		            name: mysql-root-pass 
+		              key: password 
+		        - name: MYSQL_DATABASE
+		          valueFrom:
+		          secretKeyRef: 
+		            name: mysql-db-url 
+		              key: database 
+		        - name: MYSQL_USER
+		          valueFrom:
+		            secretKeyRef:
+		              name: mysql-user-pass
+		              key: username
+		        - name: MYSQL_PASSWORD
+		          valueFrom:
+		            secretKeyRef:
+		              name: mysql-user-pass
+		              key: password
+		        ports:
+		        - containerPort: 3306        
+		          name: mysql
+		        volumeMounts:
+		        - name: mysql-persistent-storage 
+		          mountPath: /var/lib/mysql
+		      volumes:                       
+		      - name: mysql-persistent-storage
+		          persistentVolumeClaim:
+		          claimName: mysql-pv-claim
+
+thor@jump_host ~$ kubectl create -f mysql_deployment.yml 
+		unable to recognize "mysql_deployment.yml": no matches for kind "PersistentVolume" in version "apps/v1"
+		unable to recognize "mysql_deployment.yml": no matches for kind "PersistentVolumeClaim" in version "apps/v1"
+		error validating "mysql_deployment.yml": error validating data: ValidationError(Service.spec): unknown field "tier" in io.k8s.api.core.v1.ServiceSpec; if you choose to ignore these errors, turn validation off with --validate=false
+
+
+thor@jump_host ~$ vi mysql_pv.yml
+thor@jump_host ~$ cat mysql_pv.yml
+		---
+		apiVersion: apps/v1 
+		kind: PersistentVolume            
+		metadata:
+		  name: mysql-pv
+		  labels: 
+		  type: local 
+		spec:
+		  storageClassName: standard      
+		  capacity:
+		    storage: 250Mi
+		  accessModes: 
+		    - ReadWriteOnce
+		  hostPath:                       
+		  path: "/mnt/data" 
+		  persistentVolumeReclaimPolicy:  
+		  -  Retain  
+
+thor@jump_host ~$ kubectl create -f mysql_pv.yml 
+		error: unable to recognize "mysql_pv.yml": no matches for kind "PersistentVolume" in version "apps/v1"
+
+thor@jump_host ~$ vi mysql_pv.yml
+thor@jump_host ~$ cat mysql_pv.yml
+		---
+		apiVersion: v1 
+		kind: PersistentVolume            
+		metadata:
+		  name: mysql-pv
+		  labels: 
+		  type: local 
+		spec:
+		  storageClassName: standard      
+		  capacity:
+		    storage: 250Mi
+		  accessModes: 
+		  - ReadWriteOnce
+		  hostPath:                       
+		    path: "/mnt/data" 
+		  persistentVolumeReclaimPolicy: Retain  
+
+thor@jump_host ~$ kubectl create -f mysql_pv.yml 
+		error: error validating "mysql_pv.yml": error validating data: ValidationError(PersistentVolume.metadata): unknown field "type" in io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta; if you choose to ignore these errors, turn validation off with --validate=false
+
+thor@jump_host ~$ vi mysql_pv.yml
+thor@jump_host ~$ cat mysql_pv.yml
+		---
+		apiVersion: v1 																																										<---------------
+		kind: PersistentVolume            
+		metadata:
+		  name: mysql-pv
+		  labels: 
+		    type: local 																																									<---------------
+		spec:
+		  storageClassName: standard      
+		  capacity:
+		    storage: 250Mi
+		  accessModes: 
+		  - ReadWriteOnce																																									<---------------
+		  hostPath:                       
+		    path: "/mnt/data" 
+		  persistentVolumeReclaimPolicy: Retain 																													<--------------- 
+
+thor@jump_host ~$ kubectl create -f mysql_pv.yml 
+		persistentvolume/mysql-pv created
+ 
+thor@jump_host ~$ vi mysql_pvc.yml
+thor@jump_host ~$ cat mysql_pvc.yml
+		---    
+		apiVersion: apps/v1 
+		kind: PersistentVolumeClaim 
+		metadata:                          
+		  name: mysql-pv-claim
+		  labels:
+		  app: mysql-app 
+		spec:                              
+		  storageClassName: standard       
+		  accessModes:
+		    - ReadWriteOnce                
+		  resources:
+		    requests: 
+		      storage: 250MB 
+
+thor@jump_host ~$ kubectl create -f  mysql_pvc.yml
+		error: unable to recognize "mysql_pvc.yml": no matches for kind "PersistentVolumeClaim" in version "apps/v1"
+
+thor@jump_host ~$ vi mysql_pvc.yml
+thor@jump_host ~$ cat mysql_pvc.yml
+		---    
+		apiVersion: v1 																																									<---------------
+		kind: PersistentVolumeClaim 
+		metadata:                          
+		  name: mysql-pv-claim
+		  labels:
+		    app: mysql-app 																																							<---------------
+		spec:                              
+		  storageClassName: standard       
+		  accessModes:
+		  - ReadWriteOnce 																																							<---------------               
+		  resources:
+		    requests: 
+		      storage: 250Mi 																																						<---------------
+
+thor@jump_host ~$ kubectl create -f  mysql_pvc.yml
+		persistentvolumeclaim/mysql-pv-claim created
+ 
+thor@jump_host ~$ vi mysql_service.yml
+thor@jump_host ~$ cat mysql_service.yml
+		---
+		apiVersion: v1                    
+		kind: Service                      
+		metadata:
+		  name: mysql         
+		  labels:             
+		    app: mysql-app
+		spec:
+		  type: NodePort
+		  ports:
+		    - targetPort: 3306
+		      port: 3306
+		      nodePort: 30011
+		  selector:    
+		    app: mysql-app
+		  tier: mysql
+
+thor@jump_host ~$ kubectl create -f mysql_service.yml
+		error: error validating "mysql_service.yml": error validating data: ValidationError(Service.spec): unknown field "tier" in io.k8s.api.core.v1.ServiceSpec; if you choose to ignore these errors, turn validation off with --validate=false
+
+thor@jump_host ~$ vi mysql_service.yml
+thor@jump_host ~$ cat mysql_service.yml
+		---
+		apiVersion: v1                    
+		kind: Service                      
+		metadata:
+		  name: mysql         
+		  labels:             
+		    app: mysql-app
+		spec:
+		  type: NodePort
+		  ports:
+		    - targetPort: 3306
+		      port: 3306
+		      nodePort: 30011
+		  selector:    
+		    app: mysql-app
+		    tier: mysql 																																							<---------------																						
+thor@jump_host ~$ kubectl create -f mysql_service.yml
+		service/mysql created
+
+thor@jump_host ~$ vi mysql_deploy.yml
+thor@jump_host ~$ cat mysql_deploy.yml
+		---
+		apiVersion: v1 
+		kind: Deployment            
+		metadata:
+		  name: mysql-deployment       
+		  labels:                       
+		    app: mysql-app 
+		spec:
+		  selector:
+		    matchLabels:
+		      app: mysql-app
+		    tier: mysql 
+		  strategy:
+		    type: Recreate
+		  template:                    
+		    metadata:
+		      labels:                  
+		        app: mysql-app
+		      tier: mysql 
+		    spec:                       
+		      containers: 
+		      - images: mysql:5.6 
+		        name: mysql
+		        env:                        
+		        - name: MYSQL_ROOT_PASSWORD 
+		          valueFrom:                
+		          secretKeyRef: 
+		            name: mysql-root-pass 
+		              key: password 
+		        - name: MYSQL_DATABASE
+		          valueFrom:
+		          secretKeyRef: 
+		            name: mysql-db-url 
+		              key: database 
+		        - name: MYSQL_USER
+		          valueFrom:
+		            secretKeyRef:
+		              name: mysql-user-pass
+		              key: username
+		        - name: MYSQL_PASSWORD
+		          valueFrom:
+		            secretKeyRef:
+		              name: mysql-user-pass
+		              key: password
+		        ports:
+		        - containerPort: 3306        
+		          name: mysql
+		        volumeMounts:
+		        - name: mysql-persistent-storage 
+		          mountPath: /var/lib/mysql
+		      volumes:                       
+		      - name: mysql-persistent-storage
+		          persistentVolumeClaim:
+		          claimName: mysql-pv-claim
+
+thor@jump_host ~$ kubectl create -f mysql_deploy.yml
+		error: error parsing mysql_deploy.yml: error converting YAML to JSON: yaml: line 29: mapping values are not allowed in this context
+
+thor@jump_host ~$ vi mysql_deploy.yml
+thor@jump_host ~$ cat mysql_deploy.yml
+		---
+		apiVersion: v1 
+		kind: Deployment            
+		metadata:
+		  name: mysql-deployment       
+		  labels:                       
+		    app: mysql-app 
+		spec:
+		  selector:
+		    matchLabels:
+		      app: mysql-app
+		      tier: mysql 
+		  strategy:
+		    type: Recreate
+		  template:                    
+		    metadata:
+		      labels:                  
+		        app: mysql-app
+		        tier: mysql 
+		    spec:                       
+		      containers: 
+		      - images: mysql:5.6 
+		        name: mysql
+		        env:                        
+		        - name: MYSQL_ROOT_PASSWORD 
+		          valueFrom:                
+		            secretKeyRef: 
+		              name: mysql-root-pass 
+		              key: password 
+		        - name: MYSQL_DATABASE
+		          valueFrom:
+		            secretKeyRef: 
+		              name: mysql-db-url 
+		              key: database 
+		        - name: MYSQL_USER
+		          valueFrom:
+		            secretKeyRef:
+		              name: mysql-user-pass
+		              key: username
+		        - name: MYSQL_PASSWORD
+		          valueFrom:
+		            secretKeyRef:
+		              name: mysql-user-pass
+		              key: password
+		        ports:
+		        - containerPort: 3306        
+		          name: mysql
+		        volumeMounts:
+		        - name: mysql-persistent-storage 
+		          mountPath: /var/lib/mysql
+		      volumes:                       
+		      - name: mysql-persistent-storage
+		        persistentVolumeClaim:
+		          claimName: mysql-pv-claim
+
+thor@jump_host ~$ kubectl create -f mysql_deploy.yml
+		error: unable to recognize "mysql_deploy.yml": no matches for kind "Deployment" in version "v1"
+
+thor@jump_host ~$ vi mysql_deploy.yml
+
+thor@jump_host ~$ kubectl create -f mysql_deploy.yml
+		error: error validating "mysql_deploy.yml": error validating data: ValidationError(Deployment.spec.template.spec.containers[0]): unknown field "images" in io.k8s.api.core.v1.Container; if you choose to ignore these errors, turn validation off with --validate=false
+
+thor@jump_host ~$ vi mysql_deploy.yml
+thor@jump_host ~$ cat mysql_deploy.yml
+		---
+		apiVersion: apps/v1 																																	<---------------				
+		kind: Deployment            
+		metadata:
+		  name: mysql-deployment       
+		  labels:                       
+		    app: mysql-app 
+		spec:
+		  selector:
+		    matchLabels:
+		      app: mysql-app
+		      tier: mysql 																																		<---------------					
+		  strategy:
+		    type: Recreate
+		  template:                    
+		    metadata:
+		      labels:                  
+		        app: mysql-app
+		        tier: mysql 
+		    spec:                       
+		      containers: 
+		      - image: mysql:5.6 																															<---------------		
+		        name: mysql
+		        env:                        
+		        - name: MYSQL_ROOT_PASSWORD 
+		          valueFrom:                
+		            secretKeyRef: 																														<---------------
+		              name: mysql-root-pass 																									<---------------		
+		              key: password 
+		        - name: MYSQL_DATABASE
+		          valueFrom:
+		            secretKeyRef: 																														<---------------				
+		              name: mysql-db-url 																											<---------------
+		              key: database 
+		        - name: MYSQL_USER
+		          valueFrom:
+		            secretKeyRef:
+		              name: mysql-user-pass
+		              key: username
+		        - name: MYSQL_PASSWORD
+		          valueFrom:
+		            secretKeyRef:
+		              name: mysql-user-pass
+		              key: password
+		        ports:
+		        - containerPort: 3306        
+		          name: mysql
+		        volumeMounts:
+		        - name: mysql-persistent-storage 
+		          mountPath: /var/lib/mysql
+		      volumes:                       
+		      - name: mysql-persistent-storage
+		        persistentVolumeClaim:																												<---------------			
+		          claimName: mysql-pv-claim
+
+thor@jump_host ~$ kubectl create -f mysql_deploy.yml
+		deployment.apps/mysql-deployment created
+
+ 
+thor@jump_host ~$ kubectl get all
+		NAME                                    READY   STATUS              RESTARTS   AGE
+		pod/mysql-deployment-74f5dd5cdf-gq5nd   0/1     ContainerCreating   0          13s
+
+		NAME                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+		service/kubernetes   ClusterIP   10.96.0.1       <none>        443/TCP          6h23m
+		service/mysql        NodePort    10.96.153.164   <none>        3306:30011/TCP   10m
+
+		NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/mysql-deployment   0/1     1            0           13s
+
+		NAME                                          DESIRED   CURRENT   READY   AGE
+		replicaset.apps/mysql-deployment-74f5dd5cdf   1         1         0       13s
+
+thor@jump_host ~$ kubectl get pv
+		NAME       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                    STORAGECLASS   REASON   AGE
+		mysql-pv   250Mi      RWO            Retain           Bound    default/mysql-pv-claim   standard                13m
+
+thor@jump_host ~$ kubectl get pvc
+		NAME             STATUS   VOLUME     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+		mysql-pv-claim   Bound    mysql-pv   250Mi      RWO            standard       12m
+ 
+thor@jump_host ~$ kubectl get all
+		NAME                                    READY   STATUS    RESTARTS   AGE
+		pod/mysql-deployment-74f5dd5cdf-gq5nd   1/1     Running   0          36s
+
+		NAME                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+		service/kubernetes   ClusterIP   10.96.0.1       <none>        443/TCP          6h24m
+		service/mysql        NodePort    10.96.153.164   <none>        3306:30011/TCP   10m
+
+		NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/mysql-deployment   1/1     1            1           36s
+
+		NAME                                          DESIRED   CURRENT   READY   AGE
+		replicaset.apps/mysql-deployment-74f5dd5cdf   1         1         1       36s
+ 
+thor@jump_host ~$ kubectl delete service mysql
+		service "mysql" deleted
+
+thor@jump_host ~$ kubectl get all
+		NAME                                    READY   STATUS    RESTARTS   AGE
+		pod/mysql-deployment-74f5dd5cdf-gq5nd   1/1     Running   0          69s
+
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   6h24m
+
+		NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/mysql-deployment   1/1     1            1           69s
+
+		NAME                                          DESIRED   CURRENT   READY   AGE
+		replicaset.apps/mysql-deployment-74f5dd5cdf   1         1         1       69s
+
+thor@jump_host ~$ kubectl delete deployment mysql-deployment
+		deployment.apps "mysql-deployment" deleted
+
+thor@jump_host ~$ kubectl get all
+		NAME                                    READY   STATUS        RESTARTS   AGE
+		pod/mysql-deployment-74f5dd5cdf-gq5nd   0/1     Terminating   0          106s
+
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   6h25m
+
+thor@jump_host ~$ kubectl delete pods mysql-deployment-74f5dd5cdf-gq5nd
+		Error from server (NotFound): pods "mysql-deployment-74f5dd5cdf-gq5nd" not found
+thor@jump_host ~$ kubectl get all
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   6h26m
+ 
+thor@jump_host ~$ kubectl delete pvc mysql-pv-claim
+		persistentvolumeclaim "mysql-pv-claim" deleted
+
+thor@jump_host ~$ kubectl delete pv mysql-pv
+		persistentvolume "mysql-pv" deleted
+ 
+thor@jump_host ~$ kubectl get pv 
+		No resources found
+thor@jump_host ~$ kubectl get pvc
+		No resources found in default namespace.
+
+thor@jump_host ~$ cp mysql_deployment.yml mysql_deployment_bkp.yml
+thor@jump_host ~$ vi mysql_deployment.yml 
+thor@jump_host ~$ cat mysql_pv.yml mysql_pvc.yml mysql_service.yml mysql_deploy.yml >> mysql_deployment.yml 
+thor@jump_host ~$ cat mysql_deployment.yml 
+---
+apiVersion: v1 
+kind: PersistentVolume            
+metadata:
+  name: mysql-pv
+  labels: 
+    type: local 
+spec:
+  storageClassName: standard      
+  capacity:
+    storage: 250Mi
+  accessModes: 
+  - ReadWriteOnce
+  hostPath:                       
+    path: "/mnt/data" 
+  persistentVolumeReclaimPolicy: Retain  
+---    
+apiVersion: v1 
+kind: PersistentVolumeClaim 
+metadata:                          
+  name: mysql-pv-claim
+  labels:
+    app: mysql-app 
+spec:                              
+  storageClassName: standard       
+  accessModes:
+  - ReadWriteOnce                
+  resources:
+    requests: 
+      storage: 250Mi 
+---
+apiVersion: v1                    
+kind: Service                      
+metadata:
+  name: mysql         
+  labels:             
+    app: mysql-app
+spec:
+  type: NodePort
+  ports:
+    - targetPort: 3306
+      port: 3306
+      nodePort: 30011
+  selector:    
+    app: mysql-app
+    tier: mysql
+---
+apiVersion: apps/v1 
+kind: Deployment            
+metadata:
+  name: mysql-deployment       
+  labels:                       
+    app: mysql-app 
+spec:
+  selector:
+    matchLabels:
+      app: mysql-app
+      tier: mysql 
+  strategy:
+    type: Recreate
+  template:                    
+    metadata:
+      labels:                  
+        app: mysql-app
+        tier: mysql 
+    spec:                       
+      containers: 
+      - image: mysql:5.6 
+        name: mysql
+        env:                        
+        - name: MYSQL_ROOT_PASSWORD 
+          valueFrom:                
+            secretKeyRef: 
+              name: mysql-root-pass 
+              key: password 
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef: 
+              name: mysql-db-url 
+              key: database 
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-user-pass
+              key: username
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-user-pass
+              key: password
+        ports:
+        - containerPort: 3306        
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage 
+          mountPath: /var/lib/mysql
+      volumes:                       
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim
+
+thor@jump_host ~$ ls -ahl
+total 56K
+		drwxr----- 1 thor thor 4.0K Nov 28 03:21 .
+		drwxr-xr-x 1 root root 4.0K Oct 31  2020 ..
+		-rwxrwx--- 1 thor thor   18 Oct 30  2018 .bash_logout
+		-rwxrwx--- 1 thor thor  193 Oct 30  2018 .bash_profile
+		-rwxrwx--- 1 thor thor  510 Nov 28 02:58 .bashrc
+		drwxrwx--- 1 thor thor 4.0K Oct 31  2020 .config
+		drwxrwx--- 3 thor thor 4.0K Nov 28 02:59 .kube
+		-rw-r--r-- 1 thor thor 2.3K Nov 28 03:20 mysql_deployment_bkp.yml
+		-rw-r--r-- 1 thor thor 2.3K Nov 28 03:21 mysql_deployment.yml
+		-rw-rw-r-- 1 thor thor 1.4K Nov 28 03:16 mysql_deploy.yml
+		-rw-rw-r-- 1 thor thor  313 Nov 28 03:04 mysql_pvc.yml
+		-rw-rw-r-- 1 thor thor  316 Nov 28 03:02 mysql_pv.yml
+		-rw-rw-r-- 1 thor thor  295 Nov 28 03:06 mysql_service.yml
+		drwx------ 2 thor thor 4.0K Nov 28 02:58 .ssh
+
+thor@jump_host ~$ kubectl create -f mysql_deployment.yml 
+		persistentvolume/mysql-pv created
+		persistentvolumeclaim/mysql-pv-claim created
+		service/mysql created
+		deployment.apps/mysql-deployment created
+ 
+thor@jump_host ~$ kubectl get all
+		NAME                                    READY   STATUS    RESTARTS   AGE
+		pod/mysql-deployment-74f5dd5cdf-cqwt6   1/1     Running   0          7s
+
+		NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+		service/kubernetes   ClusterIP   10.96.0.1      <none>        443/TCP          6h29m
+		service/mysql        NodePort    10.96.176.41   <none>        3306:30011/TCP   7s
+
+		NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/mysql-deployment   1/1     1            1           7s
+
+		NAME                                          DESIRED   CURRENT   READY   AGE
+		replicaset.apps/mysql-deployment-74f5dd5cdf   1         1         1       7s
+
+thor@jump_host ~$ kubectl get pv
+		NAME       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                    STORAGECLASS   REASON   AGE
+		mysql-pv   250Mi      RWO            Retain           Bound    default/mysql-pv-claim   standard                16s
+
+thor@jump_host ~$ kubectl get pvc
+		NAME             STATUS   VOLUME     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+		mysql-pv-claim   Bound    mysql-pv   250Mi      RWO            standard       19s
+thor@jump_host ~$ 
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 105:
