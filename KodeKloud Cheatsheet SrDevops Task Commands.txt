@@ -2936,7 +2936,154 @@ thor@jump_host ~$ kubectl get pvc
 thor@jump_host ~$ 
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 105:
+Task 105: 29/Nov/2022
+
+Save, Load and Transfer Docker Image
+
+One of the DevOps team members was working on to create a new custom docker image on App Server 1 in Stratos DC. He is done with his changes and image is saved on same server with name demo:nautilus. Recently a requirement has been raised by a team to use that image for testing, but the team wants to test the same on App Server 3. So we need to provide them that image on App Server 3 in Stratos DC.
+
+a. On App Server 1 save the image demo:nautilus in an archive.
+
+b. Transfer the image archive to App Server 3.
+
+c. Load that image archive on App Server 3 with same name and tag which was used on App Server 1.
+
+Note: Docker is already installed on both servers; however, if its service is down please make sure to start it.
+
+1. Login to App Server and switch to root
+
+thor@jump_host ~$ ssh tony@stapp01
+		The authenticity of host 'stapp01 (172.16.238.10)' can't be established.
+		ECDSA key fingerprint is SHA256:7/VTPQ2CABk+3zUB7pJzVmT/d4XiNBJuNZ0bl5GCobQ.
+		ECDSA key fingerprint is MD5:df:68:3b:89:1a:b0:fd:1f:79:ec:d4:b7:89:e3:e9:13.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'stapp01,172.16.238.10' (ECDSA) to the list of known hosts.
+		tony@stapp01's password: 
+
+[tony@stapp01 ~]$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for tony: 
+
+2. List the existing images in docker which need to archive
+
+[root@stapp01 ~]# docker images
+		REPOSITORY   TAG        IMAGE ID       CREATED              SIZE
+		demo         nautilus   a0358bd5cf49   About a minute ago   118MB
+		ubuntu       latest     a8780b506fa4   3 weeks ago          77.8MB
+
+3. Save the image in a TAR archive
+
+[root@stapp01 ~]# docker save -o /tmp/demo.tar demo:nautilus
+
+[root@stapp01 ~]# ls -ahl /tmp
+		total 115M
+		drwxrwxrwt 1 root root 4.0K Nov 29 04:40 .
+		drwxr-xr-x 1 root root 4.0K Nov 29 04:36 ..
+		-rw------- 1 root root 115M Nov 29 04:40 demo.tar
+		-rwxr-xr-x 1 root root  239 Nov 29 04:37 docker_container.sh
+		drwxrwxrwt 1 root root 4.0K Aug  1  2019 .font-unix
+		drwxrwxrwt 1 root root 4.0K Aug  1  2019 .ICE-unix
+		-rwx------ 1 root root  836 Aug  1  2019 ks-script-rnBCJB
+		drwxrwxrwt 1 root root 4.0K Aug  1  2019 .Test-unix
+		drwxrwxrwt 1 root root 4.0K Aug  1  2019 .X11-unix
+		drwxrwxrwt 1 root root 4.0K Aug  1  2019 .XIM-unix
+		-rw------- 1 root root    0 Aug  1  2019 yum.log
+
+4. Copy(SCP) the archive file to mentioned server
+
+[root@stapp01 ~]# scp /tmp/demo.tar banner@stapp03:/tmp
+		The authenticity of host 'stapp03 (172.16.238.12)' can't be established.
+		ECDSA key fingerprint is SHA256:RveOEHTizfGCH1Dwm9qbs1/OPlyAGQuSYS3JGfpEwL0.
+		ECDSA key fingerprint is MD5:13:5d:0c:a2:b4:72:84:a9:15:41:8e:35:a6:f3:7f:22.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'stapp03,172.16.238.12' (ECDSA) to the list of known hosts.
+		banner@stapp03's password: 
+		demo.tar                                                                                                   100%  115MB  45.8MB/s   00:02    
+
+5. Login to mentioned App server and switch to root user
+
+[root@stapp01 ~]# ssh banner@stapp03
+		banner@stapp03's password: 
+ 
+[banner@stapp03 ~]$ sudo su  -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for banner: 
+
+6. Verify the copied archive file
+
+[root@stapp03 ~]# ls -ahl /tmp/
+		total 115M
+		drwxrwxrwt 1 root   root   4.0K Nov 29 04:41 .
+		drwxr-xr-x 1 root   root   4.0K Nov 29 04:36 ..
+		-rw------- 1 banner banner 115M Nov 29 04:41 demo.tar
+		drwxrwxrwt 1 root   root   4.0K Aug  1  2019 .font-unix
+		drwxrwxrwt 1 root   root   4.0K Aug  1  2019 .ICE-unix
+		-rwx------ 1 root   root    836 Aug  1  2019 ks-script-rnBCJB
+		drwxrwxrwt 1 root   root   4.0K Aug  1  2019 .Test-unix
+		drwxrwxrwt 1 root   root   4.0K Aug  1  2019 .X11-unix
+		drwxrwxrwt 1 root   root   4.0K Aug  1  2019 .XIM-unix
+		-rw------- 1 root   root      0 Aug  1  2019 yum.log
+
+7. Check current docker images
+[root@stapp03 ~]# docker images
+		Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?
+
+8. Start docker daemon if required 
+
+[root@stapp03 ~]# systemctl start docker
+
+[root@stapp03 ~]# systemctl status docker
+		● docker.service - Docker Application Container Engine
+		   Loaded: loaded (/usr/lib/systemd/system/docker.service; disabled; vendor preset: disabled)
+		   Active: active (running) since Tue 2022-11-29 04:42:59 UTC; 7s ago
+		     Docs: https://docs.docker.com
+		 Main PID: 583 (dockerd)
+		    Tasks: 23
+		   Memory: 49.2M
+		   CGroup: /docker/dcc4ae04d8c1008c63da5958d22da0d318642b6438e34301f6634af45e159a3c/system.slice/docker.service
+		           └─583 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+
+		Nov 29 04:42:57 stapp03.stratos.xfusioncorp.com dockerd[583]: time="2022-11-29T04:42:57.326955764Z" level=warning msg="Your kernel do...imit"
+		Nov 29 04:42:57 stapp03.stratos.xfusioncorp.com dockerd[583]: time="2022-11-29T04:42:57.327031003Z" level=warning msg="Your kernel do...uler"
+		Nov 29 04:42:57 stapp03.stratos.xfusioncorp.com dockerd[583]: time="2022-11-29T04:42:57.327039173Z" level=warning msg="Your kernel do...ight"
+		Nov 29 04:42:57 stapp03.stratos.xfusioncorp.com dockerd[583]: time="2022-11-29T04:42:57.327046428Z" level=warning msg="Your kernel do...vice"
+		Nov 29 04:42:57 stapp03.stratos.xfusioncorp.com dockerd[583]: time="2022-11-29T04:42:57.330263079Z" level=info msg="Loading container...art."
+		Nov 29 04:42:58 stapp03.stratos.xfusioncorp.com dockerd[583]: time="2022-11-29T04:42:58.293270350Z" level=info msg="Loading container...one."
+		Nov 29 04:42:58 stapp03.stratos.xfusioncorp.com dockerd[583]: time="2022-11-29T04:42:58.986622869Z" level=info msg="Docker daemon" co....10.7
+		Nov 29 04:42:58 stapp03.stratos.xfusioncorp.com dockerd[583]: time="2022-11-29T04:42:58.986895666Z" level=info msg="Daemon has comple...tion"
+		Nov 29 04:42:59 stapp03.stratos.xfusioncorp.com systemd[1]: Started Docker Application Container Engine.
+		Nov 29 04:42:59 stapp03.stratos.xfusioncorp.com dockerd[583]: time="2022-11-29T04:42:59.681252769Z" level=info msg="API listen on /va...sock"
+		Hint: Some lines were ellipsized, use -l to show in full.
+ 
+[root@stapp03 ~]# docker images
+		REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
+
+9. Load the image archive 
+
+[root@stapp03 ~]# docker load -i /tmp/demo.tar 
+		f4a670ac65b6: Loading layer [==================================================>]  80.31MB/80.31MB
+		f1e0d34b5503: Loading layer [==================================================>]   39.8MB/39.8MB
+		Loaded image: demo:nautilus
+
+10. Validate the task by checking docker images
+
+[root@stapp03 ~]# docker images
+		REPOSITORY   TAG        IMAGE ID       CREATED         SIZE
+		demo         nautilus   a0358bd5cf49   4 minutes ago   118MB
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 106:
