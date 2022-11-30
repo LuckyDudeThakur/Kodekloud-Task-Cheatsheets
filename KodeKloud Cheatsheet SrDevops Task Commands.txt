@@ -3086,7 +3086,102 @@ thor@jump_host ~$ ssh tony@stapp01
 		demo         nautilus   a0358bd5cf49   4 minutes ago   118MB
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 106:
+Task 106: 30/Nov/2022
+
+Create Deployments in Kubernetes Cluster
+
+The Nautilus DevOps team has started practicing some pods, and services deployment on Kubernetes platform as they are planning to migrate most of their applications on Kubernetes platform. Recently one of the team members has been assigned a task to create a deploymnt as per details mentioned below:
+
+Create a deployment named httpd to deploy the application httpd using the image httpd: latest (remember to mention the tag as well)
+
+1. Check current kubectl utility and configuration
+
+thor@jump_host ~$ kubectl get all
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   71m
+
+thor@jump_host ~$ kubectl get namespace
+		NAME                 STATUS   AGE
+		default              Active   71m
+		kube-node-lease      Active   71m
+		kube-public          Active   71m
+		kube-system          Active   71m
+		local-path-storage   Active   71m
+
+thor@jump_host ~$ kubectl get deploy
+		No resources found in default namespace.
+
+2. Create the deploy as per given rrequirements
+
+thor@jump_host ~$ kubectl create deploy httpd --image httpd:latest
+		deployment.apps/httpd created
+
+3. Validate the task by checking running pod and its description 
+
+thor@jump_host ~$ kubectl get deploy
+		NAME    READY   UP-TO-DATE   AVAILABLE   AGE
+		httpd   0/1     1            0           4s
+
+thor@jump_host ~$ kubectl get pods
+		NAME                    READY   STATUS              RESTARTS   AGE
+		httpd-84898796c-cxk8c   0/1     ContainerCreating   0          11s
+ 
+thor@jump_host ~$ kubectl get pods
+		NAME                    READY   STATUS    RESTARTS   AGE
+		httpd-84898796c-cxk8c   1/1     Running   0          15s
+
+thor@jump_host ~$ kubectl describe pod httpd-84898796c-cxk8c
+		Name:         httpd-84898796c-cxk8c
+		Namespace:    default
+		Priority:     0
+		Node:         kodekloud-control-plane/172.17.0.2
+		Start Time:   Wed, 30 Nov 2022 14:49:07 +0000
+		Labels:       app=httpd
+		              pod-template-hash=84898796c
+		Annotations:  <none>
+		Status:       Running
+		IP:           10.244.0.5
+		IPs:
+		  IP:           10.244.0.5
+		Controlled By:  ReplicaSet/httpd-84898796c
+		Containers:
+		  httpd:
+		    Container ID:   containerd://bd2e7069563795ec06f923fb9ade47569a6b88fc12e65a671c6df382c1c4770f
+		    Image:          httpd:latest 																														<-------------------
+		    Image ID:       docker.io/library/httpd@sha256:f2e89def4c032b02c83e162c1819ccfcbd4ea6bdbc5ff784bbc68cba940a9046
+		    Port:           <none>
+		    Host Port:      <none>
+		    State:          Running
+		      Started:      Wed, 30 Nov 2022 14:49:21 +0000
+		    Ready:          True
+		    Restart Count:  0
+		    Environment:    <none>
+		    Mounts:
+		      /var/run/secrets/kubernetes.io/serviceaccount from default-token-btvbx (ro)
+		Conditions:
+		  Type              Status
+		  Initialized       True 
+		  Ready             True 
+		  ContainersReady   True 
+		  PodScheduled      True 
+		Volumes:
+		  default-token-btvbx:
+		    Type:        Secret (a volume populated by a Secret)
+		    SecretName:  default-token-btvbx
+		    Optional:    false
+		QoS Class:       BestEffort
+		Node-Selectors:  <none>
+		Tolerations:     node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+		                 node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+		Events:
+		  Type    Reason     Age   From               Message
+		  ----    ------     ----  ----               -------
+		  Normal  Scheduled  42s   default-scheduler  Successfully assigned default/httpd-84898796c-cxk8c to kodekloud-control-plane
+		  Normal  Pulling    41s   kubelet            Pulling image "httpd:latest"
+		  Normal  Pulled     28s   kubelet            Successfully pulled image "httpd:latest" in 12.615345253s
+		  Normal  Created    28s   kubelet            Created container httpd
+		  Normal  Started    28s   kubelet            Started container httpd
+thor@jump_host ~$
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 107:
