@@ -3184,7 +3184,231 @@ thor@jump_host ~$ kubectl describe pod httpd-84898796c-cxk8c
 thor@jump_host ~$
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 107:
+Task 107: 02/Dec/2022
+
+Manage Git Repositories
+
+A new developer just joined the Nautilus development team and has been assigned a new project for which he needs to create a new repository under his account on Gitea server. Additionally, there is some existing data that need to be added to the repo. Below you can find more details about the task:
+
+Click on the Gitea UI button on the top bar. You should be able to access the Gitea UI. Login to Gitea server using username max and password Max_pass123.
+
+a. Create a new git repository story_ecommerce under max user.
+
+b. SSH into storage server using user max and password Max_pass123 and clone this newly created repository under user max home directory i.e /home/max.
+
+c. Copy all files from location /usr/sysops to the repository and commit/push your changes to the master branch. The commit message must be "add stories" (must be done in single commit).
+
+d. Create a new branch max_apps from master.
+
+e. Copy a file story-index-max.txt from location /tmp/stories/ to the repository. This file has a typo, which you can fix by changing the word Mooose to Mouse. Commit and push the changes to the newly created branch. Commit message must be "typo fixed for Mooose" (must be done in single commit).
+
+1. Login to Gitea UI using given credentials .
+
+2. Create a new repository 
+
+3. SSH to storage server 
+
+thor@jump_host ~$ ssh max@ststor01
+		The authenticity of host 'ststor01 (172.16.238.15)' can't be established.
+		ECDSA key fingerprint is SHA256:0z85j/k+4Nf8WKbHJzxo1AOv4FeRA8LPET2N3BEkYyo.
+		ECDSA key fingerprint is MD5:74:e6:4d:c4:b3:80:07:be:03:30:0a:bf:1e:eb:e6:82.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'ststor01,172.16.238.15' (ECDSA) to the list of known hosts.
+		max@ststor01's password: 
+		Welcome to xFusionCorp Storage server.
+
+4. clone the newly created repository
+
+max $ git clone http://git.stratos.xfusioncorp.com/max/story_ecommerce.git
+		Cloning into 'story_ecommerce'...
+		warning: You appear to have cloned an empty repository.
+		Checking connectivity... done.
+
+max $ ls -ahl
+		total 32
+		drwxr-sr-x    1 max      max         4.0K Dec  2 12:07 .
+		drwxr-xr-x    1 root     root        4.0K Oct 26  2020 ..
+		-rw-r--r--    1 max      max          202 Oct 26  2020 .bash_profile
+		-rw-r--r--    1 max      max          202 Oct 26  2020 .bashrc
+		-rw-r--r--    1 max      max           50 Oct 26  2020 .vimrc
+		drwxr-sr-x    3 max      max         4.0K Dec  2 12:07 story_ecommerce
+
+ 
+max $ cd story_ecommerce/
+
+max $ ls -ahl
+		total 16
+		drwxr-sr-x    3 max      max         4.0K Dec  2 12:07 .
+		drwxr-sr-x    1 max      max         4.0K Dec  2 12:07 ..
+		drwxr-sr-x    7 max      max         4.0K Dec  2 12:07 .git
+5. Copy the file 
+
+max $ cp /usr/sysops/*.* ./
+
+max $ ls -ahl
+		total 24
+		drwxr-sr-x    3 max      max         4.0K Dec  2 12:08 .
+		drwxr-sr-x    1 max      max         4.0K Dec  2 12:07 ..
+		drwxr-sr-x    7 max      max         4.0K Dec  2 12:07 .git
+		-rw-r--r--    1 max      max          792 Dec  2 12:08 frogs-and-ox.txt
+		-rw-r--r--    1 max      max         1.1K Dec  2 12:08 lion-and-mouse.txt
+
+6. Add the files to git , commit the changes and then push the master branch
+
+max $ git add .
+
+max $ git commit "add stories"^C
+
+max $ git status
+		On branch master
+
+		Initial commit
+
+		Changes to be committed:
+		  (use "git rm --cached <file>..." to unstage)
+
+		        new file:   frogs-and-ox.txt
+		        new file:   lion-and-mouse.txt
+
+max $ git commit -m "add stories"
+		[master (root-commit) 66c4fcd] add stories
+		 Committer: Linux User <max@ststor01.stratos.xfusioncorp.com>
+		Your name and email address were configured automatically based
+		on your username and hostname. Please check that they are accurate.
+		You can suppress this message by setting them explicitly. Run the
+		following command and follow the instructions in your editor to edit
+		your configuration file:
+
+		    git config --global --edit
+
+		After doing this, you may fix the identity used for this commit with:
+
+		    git commit --amend --reset-author
+
+		 2 files changed, 42 insertions(+)
+		 create mode 100644 frogs-and-ox.txt
+		 create mode 100644 lion-and-mouse.txt
+
+max (master)$ git status
+		On branch master
+		Your branch is based on 'origin/master', but the upstream is gone.
+		  (use "git branch --unset-upstream" to fixup)
+		nothing to commit, working directory clean
+
+max (master)$ git push origin master
+		Username for 'http://git.stratos.xfusioncorp.com': max
+		Password for 'http://max@git.stratos.xfusioncorp.com': 
+		Counting objects: 4, done.
+		Delta compression using up to 36 threads.
+		Compressing objects: 100% (4/4), done.
+		Writing objects: 100% (4/4), 1.19 KiB | 0 bytes/s, done.
+		Total 4 (delta 0), reused 0 (delta 0)
+		remote: . Processing 1 references
+		remote: Processed 1 references in total
+		To http://git.stratos.xfusioncorp.com/max/story_ecommerce.git
+		 * [new branch]      master -> master
+
+7. Create the new branch and checkout to newly created branch 
+
+max (master)$ git branch max_apps
+ 
+max (master)$ git branch -a
+		* master
+		  max_apps
+		  remotes/origin/master
+
+max (master)$ git checkout max_apps
+		Switched to branch 'max_apps'
+		max (max_apps)$ git branch -a
+		  master
+		* max_apps
+		  remotes/origin/master
+
+max (max_apps)$ ls -ahl
+		total 24
+		drwxr-sr-x    3 max      max         4.0K Dec  2 12:08 .
+		drwxr-sr-x    1 max      max         4.0K Dec  2 12:07 ..
+		drwxr-sr-x    8 max      max         4.0K Dec  2 12:10 .git
+		-rw-r--r--    1 max      max          792 Dec  2 12:08 frogs-and-ox.txt
+		-rw-r--r--    1 max      max         1.1K Dec  2 12:08 lion-and-mouse.txt
+
+8. copy the new file make the changes 
+
+max (max_apps)$ cp /tmp/stories/story-index-max.txt ./
+
+max (max_apps)$ ls -ahl
+		total 28
+		drwxr-sr-x    3 max      max         4.0K Dec  2 12:11 .
+		drwxr-sr-x    1 max      max         4.0K Dec  2 12:07 ..
+		drwxr-sr-x    8 max      max         4.0K Dec  2 12:10 .git
+		-rw-r--r--    1 max      max          792 Dec  2 12:08 frogs-and-ox.txt
+		-rw-r--r--    1 max      max         1.1K Dec  2 12:08 lion-and-mouse.txt
+		-rw-r--r--    1 max      max          102 Dec  2 12:11 story-index-max.txt
+
+max (max_apps)$ vi story-index-max.txt 
+
+max (max_apps)$ cat story-index-max.txt 
+		1. The Lion and the Mouse
+		2. The Frogs and the Ox
+		3. The Fox and the Grapes
+		4. The Donkey and the Dog
+
+
+max (max_apps)$ git status
+		On branch max_apps
+		Untracked files:
+		  (use "git add <file>..." to include in what will be committed)
+
+		        story-index-max.txt
+
+		nothing added to commit but untracked files present (use "git add" to track)
+
+9. Add the files to git , commit the changes and then push the max_apps branch
+
+max (max_apps)$ git add .
+
+max (max_apps)$ git  commit -m "typo fixed for Mooose"
+		[max_apps 54d2209] typo fixed for Mooose
+		 Committer: Linux User <max@ststor01.stratos.xfusioncorp.com>
+		Your name and email address were configured automatically based
+		on your username and hostname. Please check that they are accurate.
+		You can suppress this message by setting them explicitly. Run the
+		following command and follow the instructions in your editor to edit
+		your configuration file:
+
+		    git config --global --edit
+
+		After doing this, you may fix the identity used for this commit with:
+
+		    git commit --amend --reset-author
+
+		 1 file changed, 4 insertions(+)
+		 create mode 100644 story-index-max.txt
+
+max (max_apps)$ git status
+		On branch max_apps
+		nothing to commit, working directory clean
+
+max (max_apps)$ git push origin max_apps
+		Username for 'http://git.stratos.xfusioncorp.com': max
+		Password for 'http://max@git.stratos.xfusioncorp.com': 
+		Counting objects: 3, done.
+		Delta compression using up to 36 threads.
+		Compressing objects: 100% (3/3), done.
+		Writing objects: 100% (3/3), 412 bytes | 0 bytes/s, done.
+		Total 3 (delta 0), reused 0 (delta 0)
+		remote: 
+		remote: Create a new pull request for 'max_apps':
+		remote:   http://git.stratos.xfusioncorp.com/max/story_ecommerce/compare/master...max_apps
+		remote: 
+		remote: . Processing 1 references
+		remote: Processed 1 references in total
+		To http://git.stratos.xfusioncorp.com/max/story_ecommerce.git
+		 * [new branch]      max_apps -> max_apps
+
+max (max_apps)$ git status
+		On branch max_apps
+		nothing to commit, working directory clean
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 108:
