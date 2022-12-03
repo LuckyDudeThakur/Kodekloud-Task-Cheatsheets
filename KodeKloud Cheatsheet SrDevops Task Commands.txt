@@ -3411,7 +3411,115 @@ max (max_apps)$ git status
 		nothing to commit, working directory clean
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 108:
+Task 108: 03/Dec/2022
+
+Puppet Create a File
+
+The Puppet master and Puppet agent nodes have been set up by the Nautilus DevOps team so they can perform testing. In Stratos DC all app servers have been configured as Puppet agent nodes. Below are details about the testing scenario they want to proceed with.
+
+Use Puppet file resource and perform the below given task:
+
+    Create a Puppet programming file apps.pp under /etc/puppetlabs/code/environments/production/manifests directory on master node i.e Jump Server.
+
+    Using /etc/puppetlabs/code/environments/production/manifests/apps.pp create a file news.txt under /opt/sysops directory on App Server 1.
+
+
+
+1. Switch to root user on jump server / puppet master and got to mentione folder location
+
+thor@jump_host ~$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for thor: 
+ 
+root@jump_host ~# cd /etc/puppetlabs/code/environments/production/manifests/
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ls -ahl
+		total 8.0K
+		drwxr-xr-x 1 puppet puppet 4.0K Jul 13  2021 .
+		drwxr-xr-x 1 puppet puppet 4.0K Aug  9  2021 ..
+
+2. Create puppet programming file as per given requirement
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# vi apps.pp
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat apps.pp
+		class file_creator {
+
+		  # Now create news.txt under /opt/sysops
+
+		  file { '/opt/sysops/news.txt':
+
+		    ensure => 'present',
+
+		  }
+
+		}
+
+		node 'stapp01.stratos.xfusioncorp.com' {
+
+		  include file_creator
+
+		}
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ls -ahl
+		total 12K
+		drwxr-xr-x 1 puppet puppet 4.0K Dec  3 16:13 .
+		drwxr-xr-x 1 puppet puppet 4.0K Aug  9  2021 ..
+		-rw-r--r-- 1 root   root    201 Dec  3 16:13 apps.pp
+
+3. Validate the puppet file
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# puppet parser validate apps.pp 
+
+4. Login to App server 1 and swithc to root user 
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh tony@stapp01
+		The authenticity of host 'stapp01 (172.16.238.10)' can't be established.
+		ECDSA key fingerprint is SHA256:NLXvXSL0mV+6PF2+l8fyhaVp40+uZEWYpT6hSzNh8fw.
+		ECDSA key fingerprint is MD5:04:0d:f9:32:97:24:7d:cf:63:ce:a3:c4:0b:a9:0c:40.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'stapp01,172.16.238.10' (ECDSA) to the list of known hosts.
+		tony@stapp01's password: 
+ 
+[tony@stapp01 ~]$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for tony:
+
+5. Run puppet agent to pull the configuration from puppet server
+
+[root@stapp01 ~]# puppet agent -tv
+		Info: Using configured environment 'production'
+		Info: Retrieving pluginfacts
+		Info: Retrieving plugin
+		Info: Retrieving locales
+		Info: Caching catalog for stapp01.stratos.xfusioncorp.com
+		Info: Applying configuration version '1670084110'
+		Notice: /Stage[main]/File_creator/File[/opt/sysops/news.txt]/ensure: created
+		Notice: Applied catalog in 0.01 seconds
+
+6. Validate the task by checking file created 
+
+[root@stapp01 ~]# cd /opt/sysops/
+
+[root@stapp01 sysops]# ls -ahl
+		total 8.0K
+		drwxr-xr-x 2 root root 4.0K Dec  3 16:15 .
+		drwxr-xr-x 1 root root 4.0K Dec  3 16:10 ..
+		-rw-r--r-- 1 root root    0 Dec  3 16:15 news.txt
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 109:

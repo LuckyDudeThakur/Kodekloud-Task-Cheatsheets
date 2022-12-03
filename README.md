@@ -114,3 +114,4 @@ Task 104: 28/Nov/2022 : Kubernetes Troubleshooting
 Task 105: 29/Nov/2022 : Save, Load and Transfer Docker Image  
 Task 106: 30/Nov/2022 : Create Deployments in Kubernetes Cluster  
 Task 107: 02/Dec/2022 : Manage Git Repositories  
+Task 108: 03/Dec/2022 : Puppet Create a File  
