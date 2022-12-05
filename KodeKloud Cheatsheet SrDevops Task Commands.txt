@@ -3522,7 +3522,150 @@ root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh tony@
 		-rw-r--r-- 1 root root    0 Dec  3 16:15 news.txt
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 109:
+Task 109: 05/Dec/2022
+
+Ansible Blockinfile Module
+
+The Nautilus DevOps team wants to install and set up a simple httpd web server on all app servers in Stratos DC. Additionally, they want to deploy a sample web page for now using Ansible only. Therefore, write the required playbook to complete this task. Find more details about the task below.
+
+We already have an inventory file under /home/thor/ansible directory on jump host. Create a playbook.yml under /home/thor/ansible directory on jump host itself.
+
+    Using the playbook, install httpd web server on all app servers. Additionally, make sure its service should up and running.
+
+    Using blockinfile Ansible module add some content in /var/www/html/index.html file. Below is the content:
+
+    Welcome to XfusionCorp!
+
+    This is Nautilus sample file, created using Ansible!
+
+    Please do not modify this file manually!
+
+    The /var/www/html/index.html file's user and group owner should be apache on all app servers.
+
+    The /var/www/html/index.html file's permissions should be 0644 on all app servers.
+
+Note:
+
+i. Validation will try to run the playbook using command ansible-playbook -i inventory playbook.yml so please make sure the playbook works this way without passing any extra arguments.
+
+ii. Do not use any custom or empty marker for blockinfile module.
+
+
+1. Go to mentioned folder and check inventory file.
+
+thor@jump_host ~$ cd /home/thor/ansible/
+
+thor@jump_host ~/ansible$ ls -ahl
+		total 16K
+		drwxr-xr-x 2 thor thor 4.0K Dec  5 16:26 .
+		drwxr----- 1 thor thor 4.0K Dec  5 16:26 ..
+		-rw-r--r-- 1 thor thor   36 Dec  5 16:26 ansible.cfg
+		-rw-r--r-- 1 thor thor  237 Dec  5 16:26 inventory
+
+thor@jump_host ~/ansible$ cat inventory 
+		stapp01 ansible_host=172.16.238.10 ansible_ssh_pass=Ir0nM@n ansible_user=tony
+		stapp02 ansible_host=172.16.238.11 ansible_ssh_pass=Am3ric@ ansible_user=steve
+		stapp03 ansible_host=172.16.238.12 ansible_ssh_pass=BigGr33n ansible_user=banner
+
+thor@jump_host ~/ansible$ cat  ansible.cfg 
+		[defaults]
+		host_key_checking = False
+
+2. Create playbook as per given requirements		
+
+thor@jump_host ~/ansible$ vi playbook.yml
+thor@jump_host ~/ansible$ cat playbook.yml 
+		---
+		- name: Install httpd and setup index.html
+		  hosts: stapp01, stapp02, stapp03
+		  become: yes
+
+		  tasks:
+		    - name: Install httpd
+		      package:
+		        name: httpd
+		        state: present
+		    - name: Start service httpd, if not started
+		      service:
+		        name: httpd
+		        state: started
+		    - name: Add content block in index.html and set permissions
+		      blockinfile:
+		        path: /var/www/html/index.html
+		        create: yes
+		        block: 
+		          Welcome to XfusionCorp!
+		          This is Nautilus sample file, created using Ansible!
+		          Please do not modify this file manually!
+		        owner: apache
+		        group: apache
+		        mode: "0644"
+
+3. Execute the playbook
+
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml 
+
+		PLAY [Install httpd and setup index.html] ***************************************************************************************************
+
+		TASK [Gathering Facts] **********************************************************************************************************************
+		ok: [stapp02]
+		ok: [stapp03]
+		ok: [stapp01]
+
+		TASK [Install httpd] ************************************************************************************************************************
+		changed: [stapp02]
+		changed: [stapp01]
+		changed: [stapp03]
+
+		TASK [Start service httpd, if not started] **************************************************************************************************
+		changed: [stapp02]
+		changed: [stapp03]
+		changed: [stapp01]
+
+		TASK [Add content block in index.html and set permissions] **********************************************************************************
+		changed: [stapp03]
+		changed: [stapp01]
+		changed: [stapp02]
+
+		PLAY RECAP **********************************************************************************************************************************
+		stapp01                    : ok=4    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+		stapp02                    : ok=4    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+		stapp03                    : ok=4    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+4. Validate the task using inventory file and url
+
+thor@jump_host ~/ansible$ ansible -i inventory all -a 'ls -ahl /var/www/html/'
+		stapp02 | CHANGED | rc=0 >>
+		total 12K
+		drwxr-xr-x 2 root   root   4.0K Dec  5 16:31 .
+		drwxr-xr-x 4 root   root   4.0K Dec  5 16:31 ..
+		-rw-r--r-- 1 apache apache  176 Dec  5 16:31 index.html
+		stapp03 | CHANGED | rc=0 >>
+		total 12K
+		drwxr-xr-x 2 root   root   4.0K Dec  5 16:31 .
+		drwxr-xr-x 4 root   root   4.0K Dec  5 16:31 ..
+		-rw-r--r-- 1 apache apache  176 Dec  5 16:31 index.html
+		stapp01 | CHANGED | rc=0 >>
+		total 12K
+		drwxr-xr-x 2 root   root   4.0K Dec  5 16:31 .
+		drwxr-xr-x 4 root   root   4.0K Dec  5 16:31 ..
+		-rw-r--r-- 1 apache apache  176 Dec  5 16:31 index.html
+
+thor@jump_host ~/ansible$ curl http://stapp01
+		# BEGIN ANSIBLE MANAGED BLOCK
+		Welcome to XfusionCorp! This is Nautilus sample file, created using Ansible! Please do not modify this file manually!
+		# END ANSIBLE MANAGED BLOCK
+
+thor@jump_host ~/ansible$ curl http://stapp02
+		# BEGIN ANSIBLE MANAGED BLOCK
+		Welcome to XfusionCorp! This is Nautilus sample file, created using Ansible! Please do not modify this file manually!
+		# END ANSIBLE MANAGED BLOCK
+
+thor@jump_host ~/ansible$ curl http://stapp03
+		# BEGIN ANSIBLE MANAGED BLOCK
+		Welcome to XfusionCorp! This is Nautilus sample file, created using Ansible! Please do not modify this file manually!
+		# END ANSIBLE MANAGED BLOCK
+thor@jump_host ~/ansible$
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 110:
