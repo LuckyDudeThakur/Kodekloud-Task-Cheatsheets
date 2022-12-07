@@ -3668,7 +3668,92 @@ thor@jump_host ~/ansible$ curl http://stapp03
 thor@jump_host ~/ansible$
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 110:
+Task 110: 07/Dec/2022
+
+Docker Volumes Mapping
+
+The Nautilus DevOps team is testing applications containerization, which issupposed to be migrated on docker container-based environments soon. In today's stand-up meeting one of the team members has been assigned a task to create and test a docker container with certain requirements. Below are more details:
+
+a. On App Server 2 in Stratos DC pull nginx image (preferably latest tag but others should work too).
+
+b. Create a new container with name demo from the image you just pulled.
+
+c. Map the host volume /opt/dba with container volume /tmp. There is an sample.txt file present on same server under /tmp; copy that file to /opt/dba. Also please keep the container in running state.
+
+1. Login to App Server and switch to root user
+
+thor@jump_host ~$ ssh steve@stapp02
+		The authenticity of host 'stapp02 (172.16.238.11)' can't be established.
+		ECDSA key fingerprint is SHA256:7rKUo4xCK3UkRzI5NbGbEjCT2Czto4RqXcEi60iyGBs.
+		ECDSA key fingerprint is MD5:72:4b:e2:d6:29:d3:c6:e2:4b:23:04:ac:4f:5d:84:90.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'stapp02,172.16.238.11' (ECDSA) to the list of known hosts.
+		steve@stapp02's password: 
+
+[steve@stapp02 ~]$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for steve: 
+
+2. check existing docker images
+
+[root@stapp02 ~]# docker images 
+		REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
+
+3. Pull the mentioned image from server 
+
+[root@stapp02 ~]# docker pull nginx:latest
+		latest: Pulling from library/nginx
+		025c56f98b67: Pull complete 
+		ca9c7f45d396: Pull complete 
+		ed6bd111fc08: Pull complete 
+		e25b13a5f70d: Pull complete 
+		9bbabac55ab6: Pull complete 
+		e5c9ba265ded: Pull complete 
+		Digest: sha256:ab589a3c466e347b1c0573be23356676df90cd7ce2dbf6ec332a5f0a8b5e59db
+		Status: Downloaded newer image for nginx:latest
+		docker.io/library/nginx:latest
+ 
+[root@stapp02 ~]# docker images 
+		REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
+		nginx        latest    ac8efec875ce   30 hours ago   142MB
+
+4. Copy mentioned file to given folder  
+
+[root@stapp02 ~]# cp /tmp/sample.txt /opt/dba
+
+[root@stapp02 ~]# ls -ahl /opt/dba/
+		total 12K
+		drwxr-xr-x 2 root root 4.0K Dec  7 11:05 .
+		drwxr-xr-x 1 root root 4.0K Dec  7 11:02 ..
+		-rw-r--r-- 1 root root   23 Dec  7 11:05 sample.txt
+
+5. Run the docker image with mentioned volume mount
+
+[root@stapp02 ~]# docker run --name demo  -v /opt/dba:/tmp -d -it  nginx:latest
+		695a584a84cecf83f4b50ad70d803ef41b8ef91a6f35dffa79e85d04cffc5c0e
+
+[root@stapp02 ~]# docker ps
+		CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS          PORTS     NAMES
+		695a584a84ce   nginx:latest   "/docker-entrypoint.…"   16 seconds ago   Up 13 seconds   80/tcp    demo
+
+6. Verify the mount by login to container and ls on /tmp
+
+[root@stapp02 ~]# docker exec -it 695a584a84ce /bin/bash
+
+root@695a584a84ce:/# ls -ahl /tmp/
+		total 12K
+		drwxr-xr-x  2 root root 4.0K Dec  7 11:05 .
+		drwxr-xr-x 22 root root 4.0K Dec  7 11:06 ..
+		-rw-r--r--  1 root root   23 Dec  7 11:05 sample.txt
+
+root@695a584a84ce:/# 
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 111:

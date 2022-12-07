@@ -116,3 +116,4 @@ Task 106: 30/Nov/2022 : Create Deployments in Kubernetes Cluster
 Task 107: 02/Dec/2022 : Manage Git Repositories  
 Task 108: 03/Dec/2022 : Puppet Create a File  
 Task 109: 05/Dec/2022 : Ansible Blockinfile Module  
+Task 110: 07/Dec/2022 : Docker Volumes Mapping  
