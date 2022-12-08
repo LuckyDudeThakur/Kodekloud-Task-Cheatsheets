@@ -3756,10 +3756,173 @@ root@695a584a84ce:/# ls -ahl /tmp/
 root@695a584a84ce:/# 
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 111:
+Task 111: 08/Dec/2022
+
+Ansible Replace Module
+
+There is some data on all app servers in Stratos DC. The Nautilus development team shared some requirement with the DevOps team to alter some of the data as per recent changes they made. The DevOps team is working to prepare an Ansible playbook to accomplish the same. Below you can find more details about the task.
+
+Write a playbook.yml under /home/thor/ansible on jump host, an inventory is already present under /home/thor/ansible directory on Jump host itself. Perform below given tasks using this playbook:
+
+    We have a file /opt/devops/blog.txt on app server 1. Using Ansible replace module replace string xFusionCorp to Nautilus in that file.
+
+    We have a file /opt/devops/story.txt on app server 2. Using Ansiblereplace module replace the string Nautilus to KodeKloud in that file.
+
+    We have a file /opt/devops/media.txt on app server 3. Using Ansible replace module replace string KodeKloud to xFusionCorp Industries in that file.
+
+Note: Validation will try to run the playbook using command ansible-playbook -i inventory playbook.yml so please make sure the playbook works this way without passing any extra arguments.
+
+1. Go to mentioned folder and check ansible inventory file 
+
+thor@jump_host ~$ cd /home/thor/ansible/
+
+thor@jump_host ~/ansible$ ls -ahl
+		total 16K
+		drwxr-xr-x 2 thor thor 4.0K Dec  8 14:18 .
+		drwxr----- 1 thor thor 4.0K Dec  8 14:18 ..
+		-rw-r--r-- 1 thor thor   36 Dec  8 14:18 ansible.cfg
+		-rw-r--r-- 1 thor thor  237 Dec  8 14:18 inventory
+
+thor@jump_host ~/ansible$ cat inventory 
+		stapp01 ansible_host=172.16.238.10 ansible_ssh_pass=Ir0nM@n ansible_user=tony
+		stapp02 ansible_host=172.16.238.11 ansible_ssh_pass=Am3ric@ ansible_user=steve
+		stapp03 ansible_host=172.16.238.12 ansible_ssh_pass=BigGr33n ansible_user=banner
+
+thor@jump_host ~/ansible$ cat ansible.cfg 
+		[defaults]
+		host_key_checking = False
+
+2.Create playbook.yml as per given requirements 
+
+thor@jump_host ~/ansible$ vi playbook.yml
+ 
+thor@jump_host ~/ansible$ cat playbook.yml 
+		- name: Ansible replace
+		  hosts: stapp01,stapp02,stapp03
+		  become: yes
+		  tasks:
+		    - name: blog.txt replacement
+		      replace:
+		        path: /opt/devops/blog.txt
+		        regexp: "xFusionCorp"
+		        replace: "Nautilus"
+		      when: inventory_hostname == "stapp01"
+		    - name: story.txt replacement
+		      replace:
+		        path: /opt/devops/story.txt
+		        regexp: "Nautilus"
+		        replace: "KodeKloud"
+		      when: inventory_hostname == "stapp02"
+		    - name: media.txt replacement
+		      replace:
+		        path: /opt/devops/media.txt
+		        regexp: "KodeKloud"
+		        replace: "xFusionCorp Industries"
+		      when: inventory_hostname == "stapp03"
+
+3. Run playbook to make the changes  
+
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml 
+
+		PLAY [Ansible replace] **********************************************************************************************************************
+
+		TASK [Gathering Facts] **********************************************************************************************************************
+		ok: [stapp01]
+		ok: [stapp02]
+		ok: [stapp03]
+
+		TASK [blog.txt replacement] *****************************************************************************************************************
+		skipping: [stapp03]
+		skipping: [stapp02]
+		changed: [stapp01]
+
+		TASK [story.txt replacement] ****************************************************************************************************************
+		skipping: [stapp01]
+		skipping: [stapp03]
+		changed: [stapp02]
+
+		TASK [media.txt replacement] ****************************************************************************************************************
+		skipping: [stapp01]
+		skipping: [stapp02]
+		changed: [stapp03]
+
+		PLAY RECAP **********************************************************************************************************************************
+		stapp01                    : ok=2    changed=1    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0   
+		stapp02                    : ok=2    changed=1    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0   
+		stapp03                    : ok=2    changed=1    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0   
+
+4. Validate the task by checking the files on each server 
+
+thor@jump_host ~/ansible$ ansible -i inventory stapp01 -a 'cat /opt/devops/blog.txt'
+		stapp01 | CHANGED | rc=0 >>
+		Welcome to Nautilus Industries !
+
+thor@jump_host ~/ansible$ ansible -i inventory stapp02 -a 'cat /opt/devops/story.txt'
+		stapp02 | CHANGED | rc=0 >>
+		Welcome to KodeKloud Group !
+
+thor@jump_host ~/ansible$ ansible -i inventory stapp03 -a 'cat /opt/devops/media.txt'
+		stapp03 | CHANGED | rc=0 >>
+		Welcome to xFusionCorp Industries !
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 112:
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 113:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 114:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 115:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 116:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 117:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 118:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 119:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 120:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 121:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 122:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 123:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 124:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 125:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 126:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 127:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 128:
+
+--------------------------------------------------------------------------------------------------------------------------------
+Task 129:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 130:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 131:
+
+-
