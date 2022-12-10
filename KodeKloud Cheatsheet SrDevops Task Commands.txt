@@ -3866,7 +3866,62 @@ thor@jump_host ~/ansible$ ansible -i inventory stapp03 -a 'cat /opt/devops/media
 		Welcome to xFusionCorp Industries !
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 112:
+Task 112: 10/Dec/2022
+
+Pull Docker Image
+
+Nautilus project developers are planning to start testing on a new project. As per their meeting with the DevOps team, they want to test containerized environment application features. As per details shared with DevOps team, we need to accomplish the following task:
+
+a. Pull busybox:musl image on App Server 1 in Stratos DC and re-tag (create new tag) this image as busybox:news
+
+
+1. Login to App Server and switch to root user 
+
+thor@jump_host ~$ ssh tony@stapp01
+		The authenticity of host 'stapp01 (172.16.238.10)' can't be established.
+		ECDSA key fingerprint is SHA256:JJuCHauappFu+vIIL627WKXRst9vHaF4I+p/4JibJ8E.
+		ECDSA key fingerprint is MD5:ca:3c:ea:4e:7c:90:2f:27:c0:40:66:0e:7c:ff:a0:b7.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'stapp01,172.16.238.10' (ECDSA) to the list of known hosts.
+		tony@stapp01's password: 
+ 
+[tony@stapp01 ~]$ sudo su - 
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for tony: 
+
+2. Check current docker images on server
+
+[root@stapp01 ~]# docker images
+		REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
+
+3. Pull the mentioned docker image
+
+[root@stapp01 ~]# docker pull busybox:musl
+		musl: Pulling from library/busybox
+		4c50f639dbf8: Pull complete 
+		Digest: sha256:7d1702cfd71b9eb2ceea92bcadc293cd1ac17e321542ef9551d58f77e8b798e4
+		Status: Downloaded newer image for busybox:musl
+		docker.io/library/busybox:musl
+ 
+[root@stapp01 ~]# docker images
+		REPOSITORY   TAG       IMAGE ID       CREATED      SIZE
+		busybox      musl      24d4c1fb43e8   3 days ago   1.41MB
+
+4. Create new tag/ re-tag the pulled docker image and verify
+
+[root@stapp01 ~]# docker image tag busybox:musl busybox:news
+ 
+[root@stapp01 ~]# docker images
+		REPOSITORY   TAG       IMAGE ID       CREATED      SIZE
+		busybox      musl      24d4c1fb43e8   3 days ago   1.41MB
+		busybox      news      24d4c1fb43e8   3 days ago   1.41MB
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 113:

@@ -118,3 +118,4 @@ Task 108: 03/Dec/2022 : Puppet Create a File
 Task 109: 05/Dec/2022 : Ansible Blockinfile Module  
 Task 110: 07/Dec/2022 : Docker Volumes Mapping  
 Task 111: 08/Dec/2022 : Ansible Replace Module  
+Task 112: 10/Dec/2022 : Pull Docker Image  
