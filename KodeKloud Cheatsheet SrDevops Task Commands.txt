@@ -3924,7 +3924,168 @@ thor@jump_host ~$ ssh tony@stapp01
 		busybox      news      24d4c1fb43e8   3 days ago   1.41MB
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 113:
+Task 113: 11/Dec/2022
+
+Managing ACLs Using Ansible
+
+There are some files that need to be created on all app servers in Stratos DC. The Nautilus DevOps team want these files to be owned by user root only however, they also want that the app specific user to have a set of permissions on these files. All tasks must be done using Ansible only, so they need to create a playbook. Below you can find more information about the task.
+
+Create a playbook.yml under /home/thor/ansible on jump host, an inventory file is already present under /home/thor/ansible directory on Jump Server itself.
+
+    Create an empty file blog.txt under /opt/sysops/ directory on app server 1. Set some acl properties for this file. Using acl provide read '(r)' permissions to group tony (i.e entity is tony and etype is group).
+
+    Create an empty file story.txt under /opt/sysops/ directory on app server 2. Set some acl properties for this file. Using acl provide read + write '(rw)' permissions to user steve (i.e entity is steve and etype is user).
+
+    Create an empty file media.txt under /opt/sysops/ on app server 3. Set some acl properties for this file. Using acl provide read + write '(rw)' permissions to group banner (i.e entity is banner and etype is group).
+
+Note: Validation will try to run the playbook using command ansible-playbook -i inventory playbook.yml so please make sure the playbook works this way, without passing any extra arguments.
+
+1. Go to mentioned folder and check ansible inventory file 
+
+thor@jump_host ~$ cd /home/thor/ansible/
+
+thor@jump_host ~/ansible$ ls -ahl
+		total 16K
+		drwxr-xr-x 2 thor thor 4.0K Dec 11 05:22 .
+		drwxr----- 1 thor thor 4.0K Dec 11 05:22 ..
+		-rw-r--r-- 1 thor thor   36 Dec 11 05:22 ansible.cfg
+		-rw-r--r-- 1 thor thor  237 Dec 11 05:22 inventory
+
+thor@jump_host ~/ansible$ cat inventory 
+		stapp01 ansible_host=172.16.238.10 ansible_ssh_pass=Ir0nM@n ansible_user=tony
+		stapp02 ansible_host=172.16.238.11 ansible_ssh_pass=Am3ric@ ansible_user=steve
+		stapp03 ansible_host=172.16.238.12 ansible_ssh_pass=BigGr33n ansible_user=banner
+
+thor@jump_host ~/ansible$ cat ansible.cfg 
+		[defaults]
+		host_key_checking = False
+
+thor@jump_host ~/ansible$ ansible -i inventory all -a "ls -ahl /opt/sysops/"
+		stapp02 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x 2 root root 4.0K Dec 11 05:22 .
+		drwxr-xr-x 1 root root 4.0K Dec 11 05:22 ..
+		stapp03 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x 2 root root 4.0K Dec 11 05:22 .
+		drwxr-xr-x 1 root root 4.0K Dec 11 05:22 ..
+		stapp01 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x 2 root root 4.0K Dec 11 05:22 .
+		drwxr-xr-x 1 root root 4.0K Dec 11 05:22 ..
+
+2.Create playbook.yml as per given requirements
+
+thor@jump_host ~/ansible$ vi playbook.yml
+
+thor@jump_host ~/ansible$ cat playbook.yml 
+		- name: Create file and set ACL in Host 1
+		  hosts: stapp01
+		  become: yes
+		  tasks:
+		    - name: Create the blog.txt on stapp01
+		      file:
+		        path: /opt/sysops/blog.txt
+		        state: touch
+		    - name: Set ACL for blog.txt
+		      acl:
+		        path: /opt/sysops/blog.txt
+		        entity: tony
+		        etype: group
+		        permissions: r
+		        state: present
+		- name: Create file and set ACL in Host 2
+		  hosts: stapp02
+		  become: yes
+		  tasks:
+		    - name: Create the story.txt on stapp02
+		      file:
+		        path: /opt/sysops/story.txt
+		        state: touch
+		    - name: Set ACL for story.txt
+		      acl:
+		        path: /opt/sysops/story.txt
+		        entity: steve
+		        etype: user
+		        permissions: rw
+		        state: present
+		- name: Create file and set ACL in Host 3
+		  hosts: stapp03
+		  become: yes
+		  tasks:
+		    - name: Create the media.txt on stapp03
+		      file:
+		        path: /opt/sysops/media.txt
+		        state: touch
+		    - name: Set ACL for media.txt
+		      acl:
+		        path: /opt/sysops/media.txt
+		        entity: banner
+		        etype: group
+		        permissions: rw
+		        state: present
+
+3. Run playbook to make the changes
+
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml 
+
+		PLAY [Create file and set ACL in Host 1] ****************************************************************************************************
+
+		TASK [Gathering Facts] **********************************************************************************************************************
+		ok: [stapp01]
+
+		TASK [Create the blog.txt on stapp01] *******************************************************************************************************
+		changed: [stapp01]
+
+		TASK [Set ACL for blog.txt] *****************************************************************************************************************
+		changed: [stapp01]
+
+		PLAY [Create file and set ACL in Host 2] ****************************************************************************************************
+
+		TASK [Gathering Facts] **********************************************************************************************************************
+		ok: [stapp02]
+
+		TASK [Create the story.txt on stapp02] ******************************************************************************************************
+		changed: [stapp02]
+
+		TASK [Set ACL for story.txt] ****************************************************************************************************************
+		changed: [stapp02]
+
+		PLAY [Create file and set ACL in Host 3] ****************************************************************************************************
+
+		TASK [Gathering Facts] **********************************************************************************************************************
+		ok: [stapp03]
+
+		TASK [Create the media.txt on stapp03] ******************************************************************************************************
+		changed: [stapp03]
+
+		TASK [Set ACL for media.txt] ****************************************************************************************************************
+		changed: [stapp03]
+
+		PLAY RECAP **********************************************************************************************************************************
+		stapp01                    : ok=3    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+		stapp02                    : ok=3    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+		stapp03                    : ok=3    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+
+4. Validate the task by checking the files on each server 
+
+thor@jump_host ~/ansible$ ansible -i inventory all -a "ls -ahl /opt/sysops/"
+		stapp02 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x  2 root root 4.0K Dec 11 05:25 .
+		drwxr-xr-x  1 root root 4.0K Dec 11 05:22 ..
+		-rw-rw-r--+ 1 root root    0 Dec 11 05:25 story.txt
+		stapp01 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x  2 root root 4.0K Dec 11 05:25 .
+		drwxr-xr-x  1 root root 4.0K Dec 11 05:22 ..
+		-rw-r--r--+ 1 root root    0 Dec 11 05:25 blog.txt
+		stapp03 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x  2 root root 4.0K Dec 11 05:25 .
+		drwxr-xr-x  1 root root 4.0K Dec 11 05:22 ..
+		-rw-rw-r--+ 1 root root    0 Dec 11 05:25 media.txt
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 114:
