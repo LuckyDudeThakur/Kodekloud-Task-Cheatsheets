@@ -4088,7 +4088,99 @@ thor@jump_host ~/ansible$ ansible -i inventory all -a "ls -ahl /opt/sysops/"
 		-rw-rw-r--+ 1 root root    0 Dec 11 05:25 media.txt
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 114:
+Task 114: 12/Dec/2022
+
+Rollback a Deployment in Kubernetes
+
+This morning the Nautilus DevOps team rolled out a new release for one of the applications. Recently one of the customers logged a complaint which seems to be about a bug related to the recent release. Therefore, the team wants to rollback the recent release.
+
+There is a deployment named nginx-deployment; roll it back to the previous revision.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+1. check existing deployment and pods running status
+
+thor@jump_host ~$ kubectl  get all
+		NAME                                    READY   STATUS    RESTARTS   AGE
+		pod/nginx-deployment-594c94667b-mvkmr   1/1     Running   0          37s
+		pod/nginx-deployment-594c94667b-r7b6k   1/1     Running   0          16s
+		pod/nginx-deployment-594c94667b-sfxns   1/1     Running   0          20s
+
+		NAME                    TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+		service/kubernetes      ClusterIP   10.96.0.1      <none>        443/TCP        135m
+		service/nginx-service   NodePort    10.96.37.132   <none>        80:30008/TCP   49s
+
+		NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/nginx-deployment   3/3     3            3           49s
+
+		NAME                                          DESIRED   CURRENT   READY   AGE
+		replicaset.apps/nginx-deployment-594c94667b   3         3         3       38s
+		replicaset.apps/nginx-deployment-74fb588559   0         0         0       49s
+
+thor@jump_host ~$ kubectl  get deploy
+		NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+		nginx-deployment   3/3     3            3           60s
+
+thor@jump_host ~$ kubectl  get pods
+		NAME                                READY   STATUS    RESTARTS   AGE
+		nginx-deployment-594c94667b-mvkmr   1/1     Running   0          54s
+		nginx-deployment-594c94667b-r7b6k   1/1     Running   0          33s
+		nginx-deployment-594c94667b-sfxns   1/1     Running   0          37s
+
+2. Rollback/revert last deployment
+
+thor@jump_host ~$ kubectl rollout undo deployment nginx-deployment
+		deployment.apps/nginx-deployment rolled back
+
+3. Wait for all pods to get back to running status
+
+thor@jump_host ~$ kubectl  get deploy
+		NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+		nginx-deployment   3/3     2            3           112s
+
+thor@jump_host ~$ kubectl  get pods
+		NAME                                READY   STATUS        RESTARTS   AGE
+		nginx-deployment-594c94667b-mvkmr   1/1     Terminating   0          105s
+		nginx-deployment-594c94667b-sfxns   0/1     Terminating   0          88s
+		nginx-deployment-74fb588559-h7hpg   1/1     Running       0          9s
+		nginx-deployment-74fb588559-whhpb   1/1     Running       0          7s
+		nginx-deployment-74fb588559-zvjz7   1/1     Running       0          4s
+
+thor@jump_host ~$ kubectl  get pods
+		NAME                                READY   STATUS        RESTARTS   AGE
+		nginx-deployment-594c94667b-sfxns   0/1     Terminating   0          92s
+		nginx-deployment-74fb588559-h7hpg   1/1     Running       0          13s
+		nginx-deployment-74fb588559-whhpb   1/1     Running       0          11s
+		nginx-deployment-74fb588559-zvjz7   1/1     Running       0          8s
+
+thor@jump_host ~$ kubectl  get pods
+		NAME                                READY   STATUS    RESTARTS   AGE
+		nginx-deployment-74fb588559-h7hpg   1/1     Running   0          16s
+		nginx-deployment-74fb588559-whhpb   1/1     Running   0          14s
+		nginx-deployment-74fb588559-zvjz7   1/1     Running   0          11s
+
+4. Validate the task
+
+thor@jump_host ~$ kubectl rollout status deployment nginx-deployment
+		deployment "nginx-deployment" successfully rolled out
+
+thor@jump_host ~$ kubectl  get all
+		NAME                                    READY   STATUS    RESTARTS   AGE
+		pod/nginx-deployment-74fb588559-h7hpg   1/1     Running   0          40s
+		pod/nginx-deployment-74fb588559-whhpb   1/1     Running   0          38s
+		pod/nginx-deployment-74fb588559-zvjz7   1/1     Running   0          35s
+
+		NAME                    TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+		service/kubernetes      ClusterIP   10.96.0.1      <none>        443/TCP        137m
+		service/nginx-service   NodePort    10.96.37.132   <none>        80:30008/TCP   2m28s
+
+		NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/nginx-deployment   3/3     3            3           2m28s
+
+		NAME                                          DESIRED   CURRENT   READY   AGE
+		replicaset.apps/nginx-deployment-594c94667b   0         0         0       2m17s
+		replicaset.apps/nginx-deployment-74fb588559   3         3         3       2m28s
+thor@jump_host ~$
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 115:
