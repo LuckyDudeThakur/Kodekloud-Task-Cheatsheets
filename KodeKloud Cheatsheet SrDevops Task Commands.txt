@@ -4183,7 +4183,41 @@ thor@jump_host ~$ kubectl  get all
 thor@jump_host ~$
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 115:
+Task 115: 13/Dec/2022
+
+Ansible Config File Update
+
+To manage all servers within the stack using Ansible, the Nautilus DevOps team is planning to use a common sudo user among all servers. Ansible will be able to use this to perform different tasks on each server. This is not finalized yet, but the team has decided to first perform testing. The DevOps team has already installed Ansible on jump host using yum, and they now have the following requirement:
+
+On jump host make appropriate changes so that Ansible can use kareem as a default ssh user for all hosts. Make changes in Ansible's default configuration only —please do not try to create a new config.
+
+
+1. Switch to root user on jump_host
+
+		thor@jump_host ~$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for thor: 
+
+2. check current configuration in ansible config file(/etc/ansible/ansible.cfg) for default ssh user (remote_user) 
+
+[root@jump_host ~]# cat /etc/ansible/ansible.cfg |grep remote_user
+		#remote_user = root
+
+3. Change the value of remote_user in config file as per given requirements
+
+[root@jump_host ~]# vi /etc/ansible/ansible.cfg
+
+[root@jump_host ~]# cat /etc/ansible/ansible.cfg |grep remote_user
+		remote_user = kareem
+
+[root@jump_host ~]#
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 116:
