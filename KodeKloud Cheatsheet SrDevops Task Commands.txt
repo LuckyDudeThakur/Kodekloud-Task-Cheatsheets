@@ -5246,7 +5246,103 @@ thor@jump_host ~$ ssh natasha@ststor01
 [root@ststor01 beta]#
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 119:
+Task 119: 23/Dec/2022
+
+Puppet Install a Package
+
+
+Some new packages need to be installed on app server 3 in Stratos Datacenter. The Nautilus DevOps team has decided to install the same using Puppet. Since jump host is already configured to run as Puppet master server and all app servers are already configured to work as the puppet agent nodes, we need to create required manifests on the Puppet master server so that the same can be applied on all Puppet agent nodes. Please find more details about the task below.
+
+Create a Puppet programming file apps.pp under /etc/puppetlabs/code/environments/production/manifests directory on master node i.e Jump Server and using puppet package resource perform the tasks given below.
+
+    Install package vsftpd through Puppet package resource only on App server 3i.epuppet agent node 3`.
+
+Notes: :- Please make sure to run the puppet agent test using sudo on agent nodes, otherwise you can face certificate issues. In that case you will have to clean the certificates first and then you will be able to run the puppet agent test.
+
+:- Before clicking on the Check button please make sure to verify puppet server and puppet agent services are up and running on the respective servers, also please make sure to run puppet agent test to apply/test the changes manually first.
+
+:- Please note that once lab is loaded, the puppet server service should start automatically on puppet master server, however it can take upto 2-3 minutes to start.
+
+
+1. Switch to root user on puppet master / jump host server
+
+thor@jump_host ~$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for thor: 
+
+2. Go to Puppet folder and create mentioned puppet file as per requirements 
+
+root@jump_host ~# cd /etc/puppetlabs/code/environments/production/manifests
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ls -ahl
+		total 8.0K
+		drwxr-xr-x 1 puppet puppet 4.0K Jul 13  2021 .
+		drwxr-xr-x 1 puppet puppet 4.0K Aug  9  2021 ..
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# vi apps.pp
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat apps.pp 
+		class vsftpd_installer {
+		    package {'vsftpd':
+		        ensure => installed
+		    }
+		}
+
+		node 'stapp03.stratos.xfusioncorp.com' {
+		  include vsftpd_installer
+		}
+
+3. Validate the puppet file created  
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# puppet parser validate apps.pp 
+
+4. Login to App Server 3 and switch to root 
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh banner@stapp03
+		The authenticity of host 'stapp03 (172.16.238.12)' can't be established.
+		ECDSA key fingerprint is SHA256:FH25URE1iUQRs9xBcOo91DcHsaLqxniAcWvLCFxadwk.
+		ECDSA key fingerprint is MD5:6d:62:95:a8:cb:d3:73:41:13:f0:99:1b:4a:7b:ec:64.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'stapp03,172.16.238.12' (ECDSA) to the list of known hosts.
+		banner@stapp03's password: 
+
+[banner@stapp03 ~]$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for banner: 
+
+[root@stapp03 ~]# rpm -qa |grep vsftpd
+
+5. Run Puppet agent to pull the configuration from puppet server
+
+[root@stapp03 ~]# puppet agent -tv
+		Info: Using configured environment 'production'
+		Info: Retrieving pluginfacts
+		Info: Retrieving plugin
+		Info: Retrieving locales
+		Info: Caching catalog for stapp03.stratos.xfusioncorp.com
+		Info: Applying configuration version '1671769126'
+		Notice: Applied catalog in 0.12 seconds
+
+6. Validate the task by checking installed package
+
+[root@stapp03 ~]# rpm -qa |grep vsftpd
+		vsftpd-3.0.2-29.el7_9.x86_64
+
+[root@stapp03 ~]# 
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 120:
