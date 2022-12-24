@@ -5345,7 +5345,127 @@ root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh banne
 [root@stapp03 ~]# 
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 120:
+Task 120: 24/Dec/2022
+
+Fix Issue with VolumeMounts in Kubernetes
+
+We deployed a Nginx and PHPFPM based setup on Kubernetes cluster last week and it had been working fine. This morning one of the team members made a change somewhere which caused some issues, and it stopped working. Please look into the issue and fix it:
+
+The pod name is nginx-phpfpm and configmap name is nginx-config. Figure out the issue and fix the same.
+
+Once issue is fixed, copy /home/thor/index.php file from jump host into nginx-container under nginx document root and you should be able to access the website using Website button on top bar.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+1. Check existing running pods
+
+thor@jump_host ~$ kubectl get pods
+		NAME           READY   STATUS    RESTARTS   AGE
+		nginx-phpfpm   2/2     Running   0          87s
+
+2. Check existing running configmap for shared volume map
+
+thor@jump_host ~$ kubectl get configmap
+		NAME               DATA   AGE
+		kube-root-ca.crt   1      26m
+		nginx-config       1      96s
+
+thor@jump_host ~$ kubectl describe configmap nginx-config
+		Name:         nginx-config
+		Namespace:    default
+		Labels:       <none>
+		Annotations:  <none>
+
+		Data
+		====
+		nginx.conf:
+		----
+		events {
+		}
+		http {
+		  server {
+		    listen 8099 default_server;
+		    listen [::]:8099 default_server;
+
+		    # Set nginx to serve files from the shared volume!
+		    root /var/www/html;                                                               <--------------------------------------
+		    index  index.html index.htm index.php;
+		    server_name _;
+		    location / {
+		      try_files $uri $uri/ =404;
+		    }
+		    location ~ \.php$ {
+		      include fastcgi_params;
+		      fastcgi_param REQUEST_METHOD $request_method;
+		      fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+		      fastcgi_pass 127.0.0.1:9000;
+		    }
+		  }
+		}
+
+		Events:  <none>
+
+3. Get running pod configuration into a YAML file and look for mountPath value
+
+thor@jump_host ~$ kubectl get pod nginx-phpfpm -o yaml  > /tmp/nginx.yaml
+
+thor@jump_host ~$ cat /tmp/nginx.yaml |grep mountPath
+      {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{},"labels":{"app":"php-app"},"name":"nginx-phpfpm","namespace":"default"},"spec":{"containers":[{"image":"php:7.2-fpm","name":"php-fpm-container","volumeMounts":[{"mountPath":"/var/www/html","name":"shared-files"}]},{"image":"nginx:latest","name":"nginx-container","volumeMounts":[{"mountPath":"/usr/share/nginx/html","name":"shared-files"},{"mountPath":"/etc/nginx/nginx.conf","name":"nginx-config-volume","subPath":"nginx.conf"}]}],"volumes":[{"emptyDir":{},"name":"shared-files"},{"configMap":{"name":"nginx-config"},"name":"nginx-config-volume"}]}}
+              k:{"mountPath":"/etc/nginx/nginx.conf"}:
+                f:mountPath: {}
+              k:{"mountPath":"/usr/share/nginx/html"}:
+                f:mountPath: {}
+              k:{"mountPath":"/var/www/html"}:
+                f:mountPath: {}
+    - mountPath: /var/www/html
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+    - mountPath: /usr/share/nginx/html
+    - mountPath: /etc/nginx/nginx.conf
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+
+4. Edit the nginx.yaml file and change mountPath value from ‘/usr/share/nginx/html’ to ‘/var/www/html’ 
+
+thor@jump_host ~$ vi /tmp/nginx.yaml 
+
+thor@jump_host ~$ cat /tmp/nginx.yaml |grep mountPath
+      {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{},"labels":{"app":"php-app"},"name":"nginx-phpfpm","namespace":"default"},"spec":{"containers":[{"image":"php:7.2-fpm","name":"php-fpm-container","volumeMounts":[{"mountPath":"/var/www/html","name":"shared-files"}]},{"image":"nginx:latest","name":"nginx-container","volumeMounts":[{"mountPath":"/var/www/html","name":"shared-files"},{"mountPath":"/etc/nginx/nginx.conf","name":"nginx-config-volume","subPath":"nginx.conf"}]}],"volumes":[{"emptyDir":{},"name":"shared-files"},{"configMap":{"name":"nginx-config"},"name":"nginx-config-volume"}]}}
+              k:{"mountPath":"/etc/nginx/nginx.conf"}:
+                f:mountPath: {}
+              k:{"mountPath":"/var/www/html"}:
+                f:mountPath: {}
+              k:{"mountPath":"/var/www/html"}:
+                f:mountPath: {}
+    - mountPath: /var/www/html
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+    - mountPath: /var/www/html
+    - mountPath: /etc/nginx/nginx.conf
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+
+5. Replace the running pods with new edited/changed config
+
+thor@jump_host ~$ kubectl replace -f /tmp/nginx.yaml --force
+		pod "nginx-phpfpm" deleted
+		pod/nginx-phpfpm replaced
+
+thor@jump_host ~$ kubectl get pods
+		NAME           READY   STATUS    RESTARTS   AGE
+		nginx-phpfpm   2/2     Running   0          10s
+
+6. Copy the mentioned index.php file into pods
+
+thor@jump_host ~$ kubectl cp  /home/thor/index.php  nginx-phpfpm:/var/www/html -c nginx-container
+
+7. Validate the the task by curl on running nginx instance / check Website as mentioned in task
+
+thor@jump_host ~$ kubectl exec -it nginx-phpfpm -c nginx-container  -- curl -I  http://localhost:8099
+		HTTP/1.1 200 OK
+		Server: nginx/1.23.3
+		Date: Sat, 24 Dec 2022 13:34:46 GMT
+		Content-Type: text/html; charset=UTF-8
+		Connection: keep-alive
+		X-Powered-By: PHP/7.2.34
+
+thor@jump_host ~$
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 121:
