@@ -5468,7 +5468,78 @@ thor@jump_host ~$ kubectl exec -it nginx-phpfpm -c nginx-container  -- curl -I  
 thor@jump_host ~$
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 121:
+Task 121: 25/Dec/2022
+
+Create Pods in Kubernetes Cluster
+
+The Nautilus DevOps team has started practicing some pods and services deployment on Kubernetes platform as they are planning to migrate most of their applications on Kubernetes platform. Recently one of the team members has been assigned a task to create a pod as per details mentioned below:
+
+    Create a pod named pod-httpd using httpd image with latest tag only and remember to mention the tag i.e httpd:latest.
+
+    Labels app should be set to httpd_app, also container should be named as httpd-container.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+1. Check kubectl utility config
+
+thor@jump_host ~$ kubectl get all
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   25m
+
+thor@jump_host ~$ kubectl get services
+		NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   25m
+
+thor@jump_host ~$ kubectl get namespaces
+		NAME                 STATUS   AGE
+		default              Active   25m
+		kube-node-lease      Active   25m
+		kube-public          Active   25m
+		kube-system          Active   25m
+		local-path-storage   Active   25m
+
+thor@jump_host ~$ kubectl get pods
+	No resources found in default namespace.
+
+2. Create YAML file as per requirements
+
+thor@jump_host ~$ vi /tmp/pods.yml
+
+thor@jump_host ~$ cat /tmp/pods.yml
+		apiVersion: v1
+		kind: Pod
+		metadata:
+		    name: pod-httpd
+		    labels:
+		      app: httpd_app
+		spec:
+		    containers:
+		    - name: httpd-container
+		      image: httpd:latest
+
+3. Create pods by using the yaml file created
+
+thor@jump_host ~$ kubectl create -f /tmp/pods.yml 
+		pod/pod-httpd created
+
+4. Check the status and wait for pods to get running
+
+thor@jump_host ~$ kubectl get all
+		NAME            READY   STATUS              RESTARTS   AGE
+		pod/pod-httpd   0/1     ContainerCreating   0          8s
+
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   27m
+
+thor@jump_host ~$ kubectl get pods
+		NAME        READY   STATUS    RESTARTS   AGE
+		pod-httpd   1/1     Running   0          15s
+
+thor@jump_host ~$ kubectl get pods -o wide
+		NAME        READY   STATUS    RESTARTS   AGE   IP           NODE                      NOMINATED NODE   READINESS GATES
+		pod-httpd   1/1     Running   0          22s   10.244.0.5   kodekloud-control-plane   <none>           <none>
+thor@jump_host ~$
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 122:
