@@ -5542,7 +5542,131 @@ thor@jump_host ~$ kubectl get pods -o wide
 thor@jump_host ~$
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 122:
+Task 122: 26/Dec/2022
+
+Git Repository Update
+
+The Nautilus development team started with new project development. They have created different Git repositories to manage respective project's source code. One of the repo /opt/blog.git was created recently. The team has given us a sample index.html file that is currently present on jump host under /tmp. The repository has been cloned at /usr/src/kodekloudrepos on storage server in Stratos DC.
+
+Copy sample index.html file from jump host to storage server under cloned repository at /usr/src/kodekloudrepos, add/commit the file and push to master branch.
+
+
+1. Copy/SCP the index.html file from jump host to storage server
+
+thor@jump_host ~$ sudo scp /tmp/index.html natasha@ststor01:/tmp/
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for thor: 
+
+		The authenticity of host 'ststor01 (172.16.238.15)' can't be established.
+		ECDSA key fingerprint is SHA256:NTUGOk5/tEHb4NSstyQtMlCVIii+1RuDwMw14+CgndM.
+		ECDSA key fingerprint is MD5:a7:27:52:36:c5:db:6f:16:47:31:ed:2f:10:6c:b7:70.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'ststor01,172.16.238.15' (ECDSA) to the list of known hosts.
+		natasha@ststor01's password: 
+		
+		index.html                                                                                                 100%   27    82.1KB/s   00:00    
+
+2. Login/SSH to storage server and switch to root user 
+
+thor@jump_host ~$ ssh natasha@ststor01
+		The authenticity of host 'ststor01 (172.16.238.15)' can't be established.
+		ECDSA key fingerprint is SHA256:NTUGOk5/tEHb4NSstyQtMlCVIii+1RuDwMw14+CgndM.
+		ECDSA key fingerprint is MD5:a7:27:52:36:c5:db:6f:16:47:31:ed:2f:10:6c:b7:70.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'ststor01,172.16.238.15' (ECDSA) to the list of known hosts.
+		natasha@ststor01's password: 
+
+[natasha@ststor01 ~]$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for natasha: 
+
+3. Move to local git repo and copy the index.html file 
+
+[root@ststor01 ~]# cd /usr/src/kodekloudrepos
+
+[root@ststor01 kodekloudrepos]# ls -ahl
+		total 12K
+		drwxr-xr-x 3 root root 4.0K Dec 26 16:22 .
+		drwxr-xr-x 1 root root 4.0K Dec 26 16:22 ..
+		drwxr-xr-x 3 root root 4.0K Dec 26 16:22 blog
+
+[root@ststor01 kodekloudrepos]# cd blog/
+
+[root@ststor01 blog]# ls -ahl
+		total 20K
+		drwxr-xr-x 3 root root 4.0K Dec 26 16:22 .
+		drwxr-xr-x 3 root root 4.0K Dec 26 16:22 ..
+		drwxr-xr-x 8 root root 4.0K Dec 26 16:22 .git
+		-rw-r--r-- 1 root root   34 Dec 26 16:22 info.txt
+		-rw-r--r-- 1 root root   26 Dec 26 16:22 welcome.txt
+
+[root@ststor01 blog]# git status
+		# On branch master
+		nothing to commit, working directory clean
+
+[root@ststor01 blog]# cp /tmp/index.html ./
+
+[root@ststor01 blog]# ls -ahl
+		total 24K
+		drwxr-xr-x 3 root root 4.0K Dec 26 16:25 .
+		drwxr-xr-x 3 root root 4.0K Dec 26 16:22 ..
+		drwxr-xr-x 8 root root 4.0K Dec 26 16:25 .git
+		-rw-r--r-- 1 root root   27 Dec 26 16:25 index.html
+		-rw-r--r-- 1 root root   34 Dec 26 16:22 info.txt
+		-rw-r--r-- 1 root root   26 Dec 26 16:22 welcome.txt
+
+4. Add and commit the index.html file
+
+[root@ststor01 blog]# git status
+		# On branch master
+		# Untracked files:
+		#   (use "git add <file>..." to include in what will be committed)
+		#
+		#       index.html
+		nothing added to commit but untracked files present (use "git add" to track)
+
+[root@ststor01 blog]# git add index.html 
+
+[root@ststor01 blog]# git commit -m "Added index.html"
+		[master 0b92f5c] Added index.html
+		 1 file changed, 1 insertion(+)
+		 create mode 100644 index.html
+
+5. Push the master branch to origin
+
+[root@ststor01 blog]# git push -u origin master
+		Counting objects: 4, done.
+		Delta compression using up to 36 threads.
+		Compressing objects: 100% (2/2), done.
+		Writing objects: 100% (3/3), 332 bytes | 0 bytes/s, done.
+		Total 3 (delta 0), reused 0 (delta 0)
+		To /opt/blog.git
+		   f9b5024..0b92f5c  master -> master
+		Branch master set up to track remote branch master from origin.
+
+[root@ststor01 blog]# git status
+		# On branch master
+		nothing to commit, working directory clean
+
+[root@ststor01 blog]# git remote -v
+		origin  /opt/blog.git (fetch)
+		origin  /opt/blog.git (push)
+
+[root@ststor01 blog]#
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 123:

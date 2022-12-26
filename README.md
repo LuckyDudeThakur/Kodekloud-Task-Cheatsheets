@@ -128,3 +128,4 @@ Task 118: 20/Dec/2022 : Git Setup from Scratch
 Task 119: 23/Dec/2022 : Puppet Install a Package  
 Task 120: 24/Dec/2022 : Fix Issue with VolumeMounts in Kubernetes  
 Task 121: 25/Dec/2022 : Create Pods in Kubernetes Cluster  
+Task 122: 26/Dec/2022 : Git Repository Update  
