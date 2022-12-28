@@ -5669,7 +5669,124 @@ thor@jump_host ~$ ssh natasha@ststor01
 [root@ststor01 blog]#
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 123:
+Task 123: 28/Dec/2022
+
+Ansible Unarchive Module
+
+One of the DevOps team members has created an ZIP archive on jump host in Stratos DC that needs to be extracted and copied over to all app servers in Stratos DC itself. Because this is a routine task, the Nautilus DevOps team has suggested automating it. We can use Ansible since we have been using it for other automation tasks. Below you can find more details about the task:
+
+We have an inventory file under /home/thor/ansible directory on jump host, which should have all the app servers added already.
+
+There is a ZIP archive /usr/src/devops/xfusion.zip on jump host.
+
+Create a playbook.yml under /home/thor/ansible/ directory on jump host itself to perform the below given tasks.
+
+    Unzip /usr/src/devops/xfusion.zip archive in /opt/devops/ location on all app servers.
+
+    Make sure the extracted data must has the respective sudo user as their user and group owner, i.e tony for app server 1, steve for app server 2, banner for app server 3.
+
+    The extracted data permissions must be 0755
+
+Note: Validation will try to run the playbook using command ansible-playbook -i inventory playbook.yml so please make sure playbook works this way, without passing any extra arguments.
+
+
+1. Check current config and inventory file on jump host
+
+thor@jump_host ~$ cd /home/thor/ansible/
+
+thor@jump_host ~/ansible$ ls -ahl
+		total 16K
+		drwxr-xr-x 2 thor thor 4.0K Dec 28 03:24 .
+		drwxr----- 1 thor thor 4.0K Dec 28 03:24 ..
+		-rw-r--r-- 1 thor thor   36 Dec 28 03:24 ansible.cfg
+		-rw-r--r-- 1 thor thor  237 Dec 28 03:24 inventory
+
+thor@jump_host ~/ansible$ cat inventory 
+		stapp01 ansible_host=172.16.238.10 ansible_ssh_pass=Ir0nM@n ansible_user=tony
+		stapp02 ansible_host=172.16.238.11 ansible_ssh_pass=Am3ric@ ansible_user=steve
+		stapp03 ansible_host=172.16.238.12 ansible_ssh_pass=BigGr33n ansible_user=banner
+
+thor@jump_host ~/ansible$ cat ansible.cfg 
+		[defaults]
+		host_key_checking = False
+
+2. Check existing files on app servers as well as jump host and verify inventory file 
+
+thor@jump_host ~/ansible$ ansible -i inventory all -a "ls -ahl /opt/devops/"
+		stapp02 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x 2 root root 4.0K Dec 28 03:26 .
+		drwxr-xr-x 1 root root 4.0K Dec 28 03:26 ..
+		stapp03 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x 2 root root 4.0K Dec 28 03:26 .
+		drwxr-xr-x 1 root root 4.0K Dec 28 03:26 ..
+		stapp01 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x 2 root root 4.0K Dec 28 03:26 .
+		drwxr-xr-x 1 root root 4.0K Dec 28 03:26 ..
+
+thor@jump_host ~/ansible$ ls -ahl /usr/src/devops
+		total 12K
+		drwxr-xr-x 2 root root 4.0K Dec 28 03:26 .
+		drwxr-xr-x 1 root root 4.0K Dec 28 03:26 ..
+		-rw-r--r-- 1 root root  367 Dec 28 03:26 xfusion.zip
+
+3. Create playbook as per requirements 
+
+thor@jump_host ~/ansible$ vi playbook.yml
+
+thor@jump_host ~/ansible$ cat playbook.yml
+		- name: Extract archive
+		  hosts: stapp01, stapp02, stapp03
+		  become: yes
+		  tasks:
+		    - name: Extract the archive and set the owner/permissions
+		      unarchive:
+		        src: /usr/src/devops/xfusion.zip
+		        dest: /opt/devops/
+		        owner: "{{ ansible_user }}"
+		        group: "{{ ansible_user }}"
+		        mode: "0755"
+
+4. Run the playbook
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml 
+
+		PLAY [Extract archive] **********************************************************************************************************************
+
+		TASK [Gathering Facts] **********************************************************************************************************************
+		ok: [stapp02]
+		ok: [stapp03]
+		ok: [stapp01]
+
+		TASK [Extract the archive and set the owner/permissions] ************************************************************************************
+		changed: [stapp02]
+		changed: [stapp01]
+		changed: [stapp03]
+
+		PLAY RECAP **********************************************************************************************************************************
+		stapp01                    : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+		stapp02                    : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+		stapp03                    : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+5. Validate the task by checking files on app servers
+
+thor@jump_host ~/ansible$ ansible -i inventory all -a "ls -ahl /opt/devops/"
+		stapp03 | CHANGED | rc=0 >>
+		total 12K
+		drwxr-xr-x 3 root   root   4.0K Dec 28 03:31 .
+		drwxr-xr-x 1 root   root   4.0K Dec 28 03:26 ..
+		drwxr-xr-x 2 banner banner 4.0K Dec 28 03:26 unarchive
+		stapp01 | CHANGED | rc=0 >>
+		total 12K
+		drwxr-xr-x 3 root root 4.0K Dec 28 03:31 .
+		drwxr-xr-x 1 root root 4.0K Dec 28 03:26 ..
+		drwxr-xr-x 2 tony tony 4.0K Dec 28 03:26 unarchive
+		stapp02 | CHANGED | rc=0 >>
+		total 12K
+		drwxr-xr-x 3 root  root  4.0K Dec 28 03:31 .
+		drwxr-xr-x 1 root  root  4.0K Dec 28 03:26 ..
+		drwxr-xr-x 2 steve steve 4.0K Dec 28 03:26 unarchive
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 124:
