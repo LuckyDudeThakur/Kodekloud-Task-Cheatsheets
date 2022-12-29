@@ -5789,7 +5789,105 @@ thor@jump_host ~/ansible$ ansible -i inventory all -a "ls -ahl /opt/devops/"
 		drwxr-xr-x 2 steve steve 4.0K Dec 28 03:26 unarchive
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 124:
+Task 124: 29/Dec/2022
+
+Update an Existing Deployment in Kubernetes
+
+There is an application deployed on Kubernetes cluster. Recently, the Nautilus application development team developed a new version of the application that needs to be deployed now. As per new updates some new changes need to be made in this existing setup. So update the deployment and service as per details mentioned below:
+
+We already have a deployment named nginx-deployment and service named nginx-service. Some changes need to be made in this deployment and service, make sure not to delete the deployment and service.
+
+1.) Change the service nodeport from 30008 to 32165
+
+2.) Change the replicas count from 1 to 5
+
+3.) Change the image from nginx:1.17 to nginx:latest
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+1. Check current runnning / existing setup
+
+thor@jump_host ~$ kubectl get all
+		NAME                                    READY   STATUS    RESTARTS   AGE
+		pod/nginx-deployment-576b8f48fb-9prm8   1/1     Running   0          24s
+
+		NAME                    TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+		service/kubernetes      ClusterIP   10.96.0.1       <none>        443/TCP        92m
+		service/nginx-service   NodePort    10.96.249.254   <none>        80:30008/TCP   25s
+
+		NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/nginx-deployment   1/1     1            1           25s
+
+		NAME                                          DESIRED   CURRENT   READY   AGE
+		replicaset.apps/nginx-deployment-576b8f48fb   1         1         1       25s
+
+thor@jump_host ~$ kubectl get services 
+		NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+		kubernetes      ClusterIP   10.96.0.1       <none>        443/TCP        92m
+		nginx-service   NodePort    10.96.249.254   <none>        80:30008/TCP   39s
+
+thor@jump_host ~$ kubectl get deployment
+		NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+		nginx-deployment   1/1     1            1           49s
+
+2. Edit the service to change the node port 
+
+thor@jump_host ~$ kubectl edit service nginx-service
+		service/nginx-service edited
+
+thor@jump_host ~$ kubectl get services 
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+		kubernetes      ClusterIP   10.96.0.1       <none>        443/TCP        94m
+		nginx-service   NodePort    10.96.249.254   <none>        80:32165/TCP   2m21s
+
+3. Edit the deployment to change number of replicas and container image 
+
+thor@jump_host ~$ kubectl get deployment
+		NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+		nginx-deployment   1/1     1            1           2m33s
+
+thor@jump_host ~$ kubectl edit deployment nginx-deployment
+		deployment.apps/nginx-deployment edited
+
+4. Wait for all pods to get to running status and deployment get available
+
+thor@jump_host ~$ kubectl get deployment 
+		NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+		nginx-deployment   4/5     3            4           4m1s
+
+thor@jump_host ~$ kubectl get pods
+		NAME                                READY   STATUS              RESTARTS   AGE
+		nginx-deployment-576b8f48fb-2m4j2   0/1     Terminating         0          24s
+		nginx-deployment-576b8f48fb-9prm8   1/1     Running             0          4m11s
+		nginx-deployment-576b8f48fb-f8gl7   1/1     Terminating         0          24s
+		nginx-deployment-576b8f48fb-nbxdz   1/1     Terminating         0          24s
+		nginx-deployment-c7ff8fb84-2btjm    0/1     ContainerCreating   0          6s
+		nginx-deployment-c7ff8fb84-62wqb    1/1     Running             0          24s
+		nginx-deployment-c7ff8fb84-n4t6s    0/1     ContainerCreating   0          5s
+		nginx-deployment-c7ff8fb84-vwmps    1/1     Running             0          24s
+		nginx-deployment-c7ff8fb84-zjbjf    1/1     Running             0          23s
+
+thor@jump_host ~$ kubectl get pods
+		NAME                                READY   STATUS        RESTARTS   AGE
+		nginx-deployment-576b8f48fb-9prm8   0/1     Terminating   0          4m26s
+		nginx-deployment-c7ff8fb84-2btjm    1/1     Running       0          21s
+		nginx-deployment-c7ff8fb84-62wqb    1/1     Running       0          39s
+		nginx-deployment-c7ff8fb84-n4t6s    1/1     Running       0          20s
+		nginx-deployment-c7ff8fb84-vwmps    1/1     Running       0          39s
+		nginx-deployment-c7ff8fb84-zjbjf    1/1     Running       0          38s
+
+thor@jump_host ~$ kubectl get pods
+		NAME                               READY   STATUS    RESTARTS   AGE
+		nginx-deployment-c7ff8fb84-2btjm   1/1     Running   0          27s
+		nginx-deployment-c7ff8fb84-62wqb   1/1     Running   0          45s
+		nginx-deployment-c7ff8fb84-n4t6s   1/1     Running   0          26s
+		nginx-deployment-c7ff8fb84-vwmps   1/1     Running   0          45s
+		nginx-deployment-c7ff8fb84-zjbjf   1/1     Running   0          44s
+
+thor@jump_host ~$ kubectl get deployment 
+		NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+		nginx-deployment   5/5     5            5           4m37s
+thor@jump_host ~$
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 125:
