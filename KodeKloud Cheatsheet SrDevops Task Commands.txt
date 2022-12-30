@@ -5890,7 +5890,112 @@ thor@jump_host ~$ kubectl get deployment
 thor@jump_host ~$
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 125:
+Task 125: 30/Dec/2022
+
+Puppet Setup File Permissions
+
+The Nautilus DevOps team has put some data on all app servers in Stratos DC. jump host is configured as Puppet master server, and all app servers are already been configured as Puppet agent nodes. The team needs to update the content of some of the exiting files, as well as need to update their permissions etc. Please find below more details about the task:
+
+Create a Puppet programming file cluster.pp under /etc/puppetlabs/code/environments/production/manifests directory on the master node i.e Jump Server. Using puppet file resource, perform the below mentioned tasks.
+
+    A file named beta.txt already exists under /opt/devops directory on App Server 2.
+
+    Add content Welcome to xFusionCorp Industries! in beta.txt file on App Server 2.
+
+    Set its permissions to 0777.
+
+Notes: :- Please make sure to run the puppet agent test using sudo on agent nodes, otherwise you can face certificate issues. In that case you will have to clean the certificates first and then you will be able to run the puppet agent test.
+
+:- Before clicking on the Check button please make sure to verify puppet server and puppet agent services are up and running on the respective servers, also please make sure to run puppet agent test to apply/test the changes manually first.
+
+:- Please note that once lab is loaded, the puppet server service should start automatically on puppet master server, however it can take upto 2-3 minutes to start.
+
+
+1. Switch to root on jump host/ puppet master server
+
+thor@jump_host ~$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for thor: 
+
+2. Create puppet programming file as per requirements
+
+root@jump_host ~# cd /etc/puppetlabs/code/environments/production/manifests
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ls -ahl
+		total 8.0K
+		drwxr-xr-x 1 puppet puppet 4.0K Jul 13  2021 .
+		drwxr-xr-x 1 puppet puppet 4.0K Aug  9  2021 ..
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# vi cluster.pp
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat cluster.pp 
+		class file_updater {
+		 # Update beta.txt under /opt/devops
+		 file { '/opt/devops/beta.txt':
+		   ensure => 'present',
+		   content => 'Welcome to xFusionCorp Industries!',
+		   mode => '0777',
+		 }
+		}
+
+		node 'stapp02.stratos.xfusioncorp.com' {
+		 include file_updater
+		}
+
+3. Parse the cluster.pp file created
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# puppet parser validate cluster.pp 
+
+4. Login to app server 2 and switch to root user
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh steve@stapp02
+		The authenticity of host 'stapp02 (172.16.238.11)' can't be established.
+		ECDSA key fingerprint is SHA256:y+jxiyrcebtFq5E1tWUCPBvqr4JIpQzsMbyOE6GTxE4.
+		ECDSA key fingerprint is MD5:b4:dd:d5:ca:7d:77:7c:be:6d:ec:33:e6:15:73:9a:0c.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'stapp02,172.16.238.11' (ECDSA) to the list of known hosts.
+		steve@stapp02's password: 
+
+[steve@stapp02 ~]$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for steve: 
+
+5. Run puppet agent to pull the changes  
+
+[root@stapp02 ~]# puppet agent -tv
+		Info: Using configured environment 'production'
+		Info: Retrieving pluginfacts
+		Info: Retrieving plugin
+		Info: Retrieving locales
+		Info: Caching catalog for stapp02.stratos.xfusioncorp.com
+		Info: Applying configuration version '1672396253'
+		Notice: Applied catalog in 0.05 seconds
+
+6. Validate the task by checing file content and permissions
+
+[root@stapp02 ~]# cat /opt/devops/beta.txt 
+		Welcome to xFusionCorp Industries!
+
+[root@stapp02 ~]# ls -ahl /opt/devops/
+		total 12K
+		drwxr-xr-x 2 root root 4.0K Dec 30 10:30 .
+		drwxr-xr-x 1 root root 4.0K Dec 30 10:26 ..
+		-rwxrwxrwx 1 root root   34 Dec 30 10:30 beta.txt
+[root@stapp02 ~]#
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 126:

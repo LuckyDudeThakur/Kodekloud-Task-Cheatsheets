@@ -131,3 +131,4 @@ Task 121: 25/Dec/2022 : Create Pods in Kubernetes Cluster
 Task 122: 26/Dec/2022 : Git Repository Update  
 Task 123: 28/Dec/2022 : Ansible Unarchive Module  
 Task 124: 29/Dec/2022 : Update an Existing Deployment in Kubernetes  
+Task 125: 30/Dec/2022 : Puppet Setup File Permissions  
