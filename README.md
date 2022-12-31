@@ -132,3 +132,4 @@ Task 122: 26/Dec/2022 : Git Repository Update
 Task 123: 28/Dec/2022 : Ansible Unarchive Module  
 Task 124: 29/Dec/2022 : Update an Existing Deployment in Kubernetes  
 Task 125: 30/Dec/2022 : Puppet Setup File Permissions  
+Task 126: 31/Dec/2022 : Fix Python App Deployed on Kubernetes Cluster  

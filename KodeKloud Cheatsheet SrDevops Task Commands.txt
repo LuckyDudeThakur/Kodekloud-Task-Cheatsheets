@@ -5998,7 +5998,177 @@ root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh steve
 [root@stapp02 ~]#
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 126:
+Task 126: 31/Dec/2022
+
+Fix Python App Deployed on Kubernetes Cluster
+
+
+One of the DevOps engineers was trying to deploy a python app on Kubernetes cluster. Unfortunately, due to some mis-configuration, the application is not coming up. Please take a look into it and fix the issues. Application should be accessible on the specified nodePort.
+
+The deployment name is python-deployment-nautilus, its using poroko/flask-demo-appimage. The deployment and service of this app is already deployed.
+
+    nodePort should be 32345 and targetPort should be python flask app's default port.
+
+Note: The kubectl on jump_host has been configured to work with the kubernetes cluster.
+
+
+1. Get current running status and configuration
+
+thor@jump_host ~$ kubectl get all
+		NAME                                              READY   STATUS             RESTARTS   AGE
+		pod/python-deployment-nautilus-5dbcd5f8b4-dflt7   0/1     ImagePullBackOff   0          28s
+
+		NAME                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+		service/kubernetes                ClusterIP   10.96.0.1       <none>        443/TCP          71m
+		service/python-service-nautilus   NodePort    10.96.200.222   <none>        8080:32345/TCP   28s
+
+		NAME                                         READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/python-deployment-nautilus   0/1     1            0           28s
+
+		NAME                                                    DESIRED   CURRENT   READY   AGE
+		replicaset.apps/python-deployment-nautilus-5dbcd5f8b4   1         1         0       28s
+
+2. Check the pod logs to know the error
+
+thor@jump_host ~$ kubectl logs python-deployment-nautilus-5dbcd5f8b4-dflt7
+		Error from server (BadRequest): container "python-container-nautilus" in pod "python-deployment-nautilus-5dbcd5f8b4-dflt7" is waiting to start: trying and failing to pull image
+
+3. The error is that its uable to pull image, so lets check the deploy configured
+
+thor@jump_host ~$ kubectl get deploy
+		NAME                         READY   UP-TO-DATE   AVAILABLE   AGE
+		python-deployment-nautilus   0/1     1            0           64s
+
+thor@jump_host ~$ kubectl describe deploy python-deployment-nautilus
+			Name:                   python-deployment-nautilus
+			Namespace:              default
+			CreationTimestamp:      Sat, 31 Dec 2022 14:12:25 +0000
+			Labels:                 <none>
+			Annotations:            deployment.kubernetes.io/revision: 1
+			Selector:               app=python_app
+			Replicas:               1 desired | 1 updated | 1 total | 0 available | 1 unavailable
+			StrategyType:           RollingUpdate
+			MinReadySeconds:        0
+			RollingUpdateStrategy:  25% max unavailable, 25% max surge
+			Pod Template:
+			  Labels:  app=python_app
+			  Containers:
+			   python-container-nautilus:
+			    Image:        poroko/flask-app-demo                                 <--------Wrong name of image
+			    Port:         5000/TCP                                              <--------Also image running on port 5000 which is flask default port
+			    Host Port:    0/TCP
+			    Environment:  <none>
+			    Mounts:       <none>
+			  Volumes:        <none>
+			Conditions:
+			  Type           Status  Reason
+			  ----           ------  ------
+			  Available      False   MinimumReplicasUnavailable
+			  Progressing    True    ReplicaSetUpdated
+			OldReplicaSets:  <none>
+			NewReplicaSet:   python-deployment-nautilus-5dbcd5f8b4 (1/1 replicas created)
+			Events:
+			  Type    Reason             Age   From                   Message
+			  ----    ------             ----  ----                   -------
+			  Normal  ScalingReplicaSet  93s   deployment-controller  Scaled up replica set python-deployment-nautilus-5dbcd5f8b4 to 1
+
+4. Edit deployment to update the image name. 
+
+thor@jump_host ~$ kubectl edit deploy python-deployment-nautilus
+		deployment.apps/python-deployment-nautilus edited
+
+5. Wait for pod to get to runnning status 
+
+thor@jump_host ~$ kubectl get all
+			NAME                                              READY   STATUS              RESTARTS   AGE
+			pod/python-deployment-nautilus-5dbcd5f8b4-dflt7   0/1     ImagePullBackOff    0          3m
+			pod/python-deployment-nautilus-767b6d4c9b-t4jzx   0/1     ContainerCreating   0          9s
+
+			NAME                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+			service/kubernetes                ClusterIP   10.96.0.1       <none>        443/TCP          74m
+			service/python-service-nautilus   NodePort    10.96.200.222   <none>        8080:32345/TCP   3m
+
+			NAME                                         READY   UP-TO-DATE   AVAILABLE   AGE
+			deployment.apps/python-deployment-nautilus   0/1     1            0           3m
+
+			NAME                                                    DESIRED   CURRENT   READY   AGE
+			replicaset.apps/python-deployment-nautilus-5dbcd5f8b4   1         1         0       3m
+			replicaset.apps/python-deployment-nautilus-767b6d4c9b   1         1         0       9s
+
+thor@jump_host ~$ kubectl get all
+		NAME                                              READY   STATUS              RESTARTS   AGE
+		pod/python-deployment-nautilus-5dbcd5f8b4-dflt7   0/1     ImagePullBackOff    0          3m7s
+		pod/python-deployment-nautilus-767b6d4c9b-t4jzx   0/1     ContainerCreating   0          16s
+
+		NAME                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+		service/kubernetes                ClusterIP   10.96.0.1       <none>        443/TCP          74m
+		service/python-service-nautilus   NodePort    10.96.200.222   <none>        8080:32345/TCP   3m7s
+
+		NAME                                         READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/python-deployment-nautilus   0/1     1            0           3m7s
+
+		NAME                                                    DESIRED   CURRENT   READY   AGE
+		replicaset.apps/python-deployment-nautilus-5dbcd5f8b4   1         1         0       3m7s
+		replicaset.apps/python-deployment-nautilus-767b6d4c9b   1         1         0       16s
+
+6. Check service configuration as it is running on port 8080 where as it should run on flask default port 5000
+
+thor@jump_host ~$ kubectl get service
+NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+kubernetes                ClusterIP   10.96.0.1       <none>        443/TCP          74m
+python-service-nautilus   NodePort    10.96.200.222   <none>        8080:32345/TCP   3m19s
+
+thor@jump_host ~$ kubectl describe service python-service-nautilus
+		Name:                     python-service-nautilus
+		Namespace:                default
+		Labels:                   <none>
+		Annotations:              <none>
+		Selector:                 app=python_app
+		Type:                     NodePort
+		IP:                       10.96.200.222
+		Port:                     <unset>  8080/TCP
+		TargetPort:               8080/TCP
+		NodePort:                 <unset>  32345/TCP
+		Endpoints:                10.244.0.6:8080
+		Session Affinity:         None
+		External Traffic Policy:  Cluster
+		Events:                   <none>
+
+7. Edit serive configuration to update port to 5000
+
+thor@jump_host ~$ kubectl edit service python-service-nautilus
+		service/python-service-nautilus edited
+
+thor@jump_host ~$ kubectl get service
+		NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+		kubernetes                ClusterIP   10.96.0.1       <none>        443/TCP          76m
+		python-service-nautilus   NodePort    10.96.200.222   <none>        5000:32345/TCP   4m55s
+
+8. Validate the task by checking updated config and logs of pod. Also run Application from top right corner
+
+thor@jump_host ~$ kubectl get all
+		NAME                                              READY   STATUS    RESTARTS   AGE
+		pod/python-deployment-nautilus-767b6d4c9b-t4jzx   1/1     Running   0          2m11s
+
+		NAME                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+		service/kubernetes                ClusterIP   10.96.0.1       <none>        443/TCP          76m
+		service/python-service-nautilus   NodePort    10.96.200.222   <none>        5000:32345/TCP   5m2s
+
+		NAME                                         READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/python-deployment-nautilus   1/1     1            1           5m2s
+
+		NAME                                                    DESIRED   CURRENT   READY   AGE
+		replicaset.apps/python-deployment-nautilus-5dbcd5f8b4   0         0         0       5m2s
+		replicaset.apps/python-deployment-nautilus-767b6d4c9b   1         1         1       2m11s
+
+thor@jump_host ~$ kubectl logs python-deployment-nautilus-767b6d4c9b-t4jzx
+		 * Serving Flask app "app.py"
+		 * Environment: production
+		   WARNING: Do not use the development server in a production environment.
+		   Use a production WSGI server instead.
+		 * Debug mode: off
+		 * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+thor@jump_host ~$
 
 --------------------------------------------------------------------------------------------------------------------------------
 Task 127:
