@@ -6514,8 +6514,182 @@ root@nginx-phpfpm-dp-6b5c45c6c7-zq6nr:/#
 9. Validate by clicking on the view port top right side side of the terminal and select port 30008. If the container is running then we see nginx page and the task is done.
 
 --------------------------------------------------------------------------------------------------------------------------------
-Task 128:
+Task 128: 03/Jan/2023
 
+Rolling Updates And Rolling Back Deployments in Kubernetes
+
+
+There is a production deployment planned for next week. The Nautilus DevOps team wants to test the deployment update and rollback on Dev environment first so that they can identify the risks in advance. Below you can find more details about the plan they want to execute.
+
+    Create a namespace nautilus. Create a deployment called httpd-deploy under this new namespace, It should have one container called httpd, use httpd:2.4.27 image and 2 replicas. The deployment should use RollingUpdate strategy with maxSurge=1, and maxUnavailable=2. Also create a NodePort type service named httpd-service and expose the deployment on nodePort: 30008.
+
+    Now upgrade the deployment to version httpd:2.4.43 using a rolling update.
+
+    Finally, once all pods are updated undo the recent update and roll back to the previous/original version.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+1. Get current configuration
+
+thor@jump_host ~$ kubectl get namespace
+	NAME                 STATUS   AGE
+	default              Active   27m
+	kube-node-lease      Active   27m
+	kube-public          Active   27m
+	kube-system          Active   27m
+	local-path-storage   Active   27m
+
+2. Create mentioned namespace and verify
+
+thor@jump_host ~$ kubectl create namespace nautilus
+	namespace/nautilus created
+
+thor@jump_host ~$ kubectl get namespace
+		NAME                 STATUS   AGE
+		default              Active   28m
+		kube-node-lease      Active   28m
+		kube-public          Active   28m
+		kube-system          Active   28m
+		local-path-storage   Active   27m
+		nautilus             Active   3s
+
+3. Create YAML file to implement the requirements of deployment and service
+
+thor@jump_host ~$ vi /tmp/httpd_deploy.yaml
+
+thor@jump_host ~$ cat /tmp/httpd_deploy.yaml
+		---
+		apiVersion: apps/v1
+		kind: Deployment
+		metadata:
+		  name: httpd-deploy
+		  namespace: nautilus
+		spec:
+		  replicas: 2
+		  strategy:
+		    type: RollingUpdate
+		    rollingUpdate:
+		      maxSurge: 1
+		      maxUnavailable: 2
+		  selector:
+		    matchLabels:
+		      app: httpd
+		  template:
+		    metadata:
+		      labels:
+		        app: httpd
+		    spec:
+		      containers:
+		        - name: httpd
+		          image: httpd:2.4.27
+		---                                                                                                           
+		apiVersion: v1                                                                                                
+		kind: Service                                                                                                 
+		metadata:                                                                                                     
+		  name: httpd-service                                                                                         
+		spec:                                                                                                         
+		  type: NodePort                                                                                             
+		  selector:                                                                                                  
+		    app: httpd                                                                                     
+		  ports:                                                                                                     
+		    - port: 80                                                                                               
+		      targetPort: 80                                                                                         
+		      nodePort: 30008
+
+4. Apply the YAML file created 
+thor@jump_host ~$ kubectl apply -f /tmp/httpd_deploy.yaml --namespace=nautilus
+		deployment.apps/httpd-deploy created
+		service/httpd-service created
+
+5. Verify the changes/creation of deployment, pods and service. Wait till pods get into running status.
+
+thor@jump_host ~$ kubectl get all
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   29m
+
+thor@jump_host ~$ kubectl get all -n nautilus
+		NAME                                READY   STATUS    RESTARTS   AGE
+		pod/httpd-deploy-5c68f9f7b7-bbczb   1/1     Running   0          38s
+		pod/httpd-deploy-5c68f9f7b7-txl6h   1/1     Running   0          38s
+
+		NAME                    TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+		service/httpd-service   NodePort   10.96.225.85   <none>        80:30008/TCP   38s
+
+		NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/httpd-deploy   2/2     2            2           38s
+
+		NAME                                      DESIRED   CURRENT   READY   AGE
+		replicaset.apps/httpd-deploy-5c68f9f7b7   2         2         2       38s
+
+thor@jump_host ~$ kubectl get deployment -n nautilus -o wide
+		NAME           READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES         SELECTOR
+		httpd-deploy   2/2     2            2           60s   httpd        httpd:2.4.27   app=httpd
+
+thor@jump_host ~$ kubectl get pods -n nautilus
+		NAME                            READY   STATUS    RESTARTS   AGE
+		httpd-deploy-5c68f9f7b7-bbczb   1/1     Running   0          73s
+		httpd-deploy-5c68f9f7b7-txl6h   1/1     Running   0          73s
+
+6. Update the container image as mentioned and wait till pods get into running status 
+
+thor@jump_host ~$ kubectl set image deployment/httpd-deploy httpd=httpd:2.4.43 --namespace=nautilus --record=true
+		deployment.apps/httpd-deploy image updated
+
+thor@jump_host ~$ kubectl get deployment -n nautilus -o wide
+		NAME           READY   UP-TO-DATE   AVAILABLE   AGE    CONTAINERS   IMAGES         SELECTOR
+		httpd-deploy   0/2     2            0           101s   httpd        httpd:2.4.43   app=httpd
+
+thor@jump_host ~$ kubectl get pods -n nautilus
+		NAME                            READY   STATUS              RESTARTS   AGE
+		httpd-deploy-7bb4d96457-7pg4l   0/1     ContainerCreating   0          19s
+		httpd-deploy-7bb4d96457-kjbn4   0/1     ContainerCreating   0          18s
+
+thor@jump_host ~$ kubectl get pods -n nautilus
+		NAME                            READY   STATUS    RESTARTS   AGE
+		httpd-deploy-7bb4d96457-7pg4l   1/1     Running   0          28s
+		httpd-deploy-7bb4d96457-kjbn4   1/1     Running   0          27s
+
+thor@jump_host ~$ kubectl get deployment -n nautilus -o wide
+		NAME           READY   UP-TO-DATE   AVAILABLE   AGE    CONTAINERS   IMAGES         SELECTOR
+		httpd-deploy   2/2     2            2           119s   httpd        httpd:2.4.43   app=httpd
+
+
+7. Check rollout status and history for deployment
+
+thor@jump_host ~$ kubectl rollout status deployment httpd-deploy -n nautilus
+		deployment "httpd-deploy" successfully rolled out
+ 
+thor@jump_host ~$ kubectl rollout history deployment httpd-deploy -n nautilus
+		deployment.apps/httpd-deploy 
+		REVISION  CHANGE-CAUSE
+		1         <none>
+		2         kubectl set image deployment/httpd-deploy httpd=httpd:2.4.43 --namespace=nautilus --record=true
+
+8. Undo latest rollout to revert back the changes and wait for pods to get back to running status again. Check status and history of deployment
+
+thor@jump_host ~$ kubectl rollout undo deployment httpd-deploy -n nautilus
+		deployment.apps/httpd-deploy rolled back
+
+thor@jump_host ~$ kubectl rollout status deployment httpd-deploy -n nautilus
+		Waiting for deployment "httpd-deploy" rollout to finish: 1 of 2 updated replicas are available...
+		deployment "httpd-deploy" successfully rolled out
+
+thor@jump_host ~$ kubectl get pods -n nautilus
+		NAME                            READY   STATUS    RESTARTS   AGE
+		httpd-deploy-5c68f9f7b7-9sgks   1/1     Running   0          16s
+		httpd-deploy-5c68f9f7b7-rnv6l   1/1     Running   0          15s
+
+thor@jump_host ~$ kubectl get deployment -n nautilus -o wide
+		NAME           READY   UP-TO-DATE   AVAILABLE   AGE    CONTAINERS   IMAGES         SELECTOR
+		httpd-deploy   2/2     2            2           3m2s   httpd        httpd:2.4.27   app=httpd
+
+thor@jump_host ~$ kubectl rollout history deployment httpd-deploy -n nautilus
+		deployment.apps/httpd-deploy 
+		REVISION  CHANGE-CAUSE
+		2         kubectl set image deployment/httpd-deploy httpd=httpd:2.4.43 --namespace=nautilus --record=true
+		3         <none>
+
+thor@jump_host ~$
 --------------------------------------------------------------------------------------------------------------------------------
 Task 129:
 
@@ -6525,4 +6699,62 @@ Task 130:
 ---------------------------------------------------------------------------------------------------------------------------------
 Task 131:
 
--
+---------------------------------------------------------------------------------------------------------------------------------
+Task 132:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 133:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 134:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 135:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 136:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 137:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 138:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 139:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 140:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 141:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 142:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 143:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 144:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 145:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 146:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 147:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 148:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 149:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 150:
+
+---------------------------------------------------------------------------------------------------------------------------------
+Task 151:
