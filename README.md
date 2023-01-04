@@ -135,3 +135,4 @@ Task 125: 30/Dec/2022 : Puppet Setup File Permissions
 Task 126: 31/Dec/2022 : Fix Python App Deployed on Kubernetes Cluster  
 Task 127: 02/Jan/2023 : Fix issue with PhpFpm Application Deployed on Kubernetes  
 Task 128: 03/Jan/2023 : Rolling Updates And Rolling Back Deployments in Kubernetes  
+Task 129: 04/Jan/2023 : Managing Jinja2 Templates Using Ansible  
