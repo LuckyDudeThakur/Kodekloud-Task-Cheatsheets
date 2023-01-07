@@ -7044,7 +7044,99 @@ logout
 thor@jump_host ~/playbooks$
 
 ---------------------------------------------------------------------------------------------------------------------------------
-Task 131:
+Task 131: 07/Jan/2023
+
+Puppet Add Users
+
+A new teammate has joined the Nautilus application development team, the application development team has asked the DevOps team to create a new user account for the new teammate on application server 3 in Stratos Datacenter. The task needs to be performed using Puppet only. You can find more details below about the task.
+
+Create a Puppet programming file news.pp under /etc/puppetlabs/code/environments/production/manifests directory on master node i.e Jump Server, and using Puppet user resource add a user on all app servers as mentioned below:
+
+    Create a user siva and set its UID to 1644 on Puppet agent nodes 3 i.e App Servers 3.
+
+Notes: :- Please make sure to run the puppet agent test using sudo on agent nodes, otherwise you can face certificate issues. In that case you will have to clean the certificates first and then you will be able to run the puppet agent test.
+
+:- Before clicking on the Check button please make sure to verify puppet server and puppet agent services are up and running on the respective servers, also please make sure to run puppet agent test to apply/test the changes manually first.
+
+:- Please note that once lab is loaded, the puppet server service should start automatically on puppet master server, however it can take upto 2-3 minutes to start.
+
+
+1. Login to root user on jump host
+
+thor@jump_host ~$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for thor: 
+
+2. Create puppet programming file news.pp on given directory location as per give nrequirements
+
+root@jump_host ~# cd /etc/puppetlabs/code/environments/production/manifests
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# vi news.pp
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat news.pp
+		class user_create {
+		  user { 
+		   'siva':
+		   ensure   => present,
+		   uid => 1644,
+		  }
+		}
+
+		node 'stapp03.stratos.xfusioncorp.com' {
+		  include user_create
+		}
+
+3. Parse and validate news.pp file
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# puppet parser validate news.pp
+
+4. Login to App Server 3 and sitch to root user
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh banner@stapp03
+		The authenticity of host 'stapp03 (172.16.238.12)' can't be established.
+		ECDSA key fingerprint is SHA256:FRLWcj5X07yxcJggr/l4cU9nSphy2E6WFO+cW4WgnqQ.
+		ECDSA key fingerprint is MD5:47:a3:ee:4c:19:d1:8c:47:d7:0f:0e:43:a0:6f:45:89.
+		Are you sure you want to continue connecting (yes/no)? yes
+		Warning: Permanently added 'stapp03,172.16.238.12' (ECDSA) to the list of known hosts.
+		banner@stapp03's password: 
+
+[banner@stapp03 ~]$ sudo su -
+
+		We trust you have received the usual lecture from the local System
+		Administrator. It usually boils down to these three things:
+
+		    #1) Respect the privacy of others.
+		    #2) Think before you type.
+		    #3) With great power comes great responsibility.
+
+		[sudo] password for banner: 
+
+5. Run puppet agent to pull the changes from master server
+
+[root@stapp03 ~]# puppet agent -tv
+		Info: Using configured environment 'production'
+		Info: Retrieving pluginfacts
+		Info: Retrieving plugin
+		Info: Retrieving locales
+		Info: Caching catalog for stapp03.stratos.xfusioncorp.com
+		Info: Applying configuration version '1673086141'
+		Notice: /Stage[main]/User_create/User[siva]/ensure: created
+		Notice: Applied catalog in 0.05 seconds
+
+6. Validate the task by checking user created
+
+[root@stapp03 ~]# cat /etc/passwd|grep siva
+		siva:x:1644:1644::/home/siva:/bin/bash
+
+[root@stapp03 ~]# id siva
+		uid=1644(siva) gid=1644(siva) groups=1644(siva)
 
 ---------------------------------------------------------------------------------------------------------------------------------
 Task 132:
