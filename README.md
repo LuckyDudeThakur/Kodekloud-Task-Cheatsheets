@@ -138,3 +138,4 @@ Task 128: 03/Jan/2023 : Rolling Updates And Rolling Back Deployments in Kubernet
 Task 129: 04/Jan/2023 : Managing Jinja2 Templates Using Ansible  
 Task 130: 06/Jan/2023 : Ansible Create Users and Groups  
 Task 131: 07/Jan/2023 : Puppet Add Users  
+Task 132: 08/Jan/2023 : Ansible Copy Module  

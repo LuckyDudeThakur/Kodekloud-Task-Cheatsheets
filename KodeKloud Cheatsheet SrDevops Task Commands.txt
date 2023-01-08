@@ -7139,7 +7139,112 @@ root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh banne
 		uid=1644(siva) gid=1644(siva) groups=1644(siva)
 
 ---------------------------------------------------------------------------------------------------------------------------------
-Task 132:
+Task 132: 08/Jan/2023
+
+Ansible Copy Module
+
+
+There is data on jump host that needs to be copied on all application servers in Stratos DC. Nautilus DevOps team want to perform this task using Ansible. Perform the task as per details mentioned below:
+
+a. On jump host create an inventory file /home/thor/ansible/inventory and add all application servers as managed nodes.
+
+b. On jump host create a playbook /home/thor/ansible/playbook.yml to copy /usr/src/devops/index.html file to all application servers at location /opt/devops.
+
+Note: Validation will try to run the playbook using command ansible-playbook -i inventory playbook.yml so please make sure the playbook works this way without passing any extra arguments.
+
+
+1. Go to mentioned folder and create inventory file with credentials for all app servers 
+
+thor@jump_host ~$ cd /home/thor/ansible/
+
+thor@jump_host ~/ansible$ ls -ahl
+		total 8.0K
+		drwxr-xr-x 2 thor thor 4.0K Jan  8 14:04 .
+		drwxr----- 1 thor thor 4.0K Jan  8 14:04 ..
+
+thor@jump_host ~/ansible$ vi /home/thor/ansible/inventory
+
+thor@jump_host ~/ansible$ cat /home/thor/ansible/inventory
+		stapp01 ansible_host=172.16.238.10 ansible_ssh_pass=Ir0nM@n  ansible_user=tony
+
+		stapp02 ansible_host=172.16.238.11 ansible_ssh_pass=Am3ric@  ansible_user=steve
+
+		stapp03 ansible_host=172.16.238.12 ansible_ssh_pass=BigGr33n  ansible_user=banner
+
+2. Verify the inventory file by running command via ansible
+
+thor@jump_host ~/ansible$ ansible -i inventory all -a "ls -ahl /opt/devops"
+		stapp03 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x 2 root root 4.0K Jan  8 14:05 .
+		drwxr-xr-x 1 root root 4.0K Jan  8 14:05 ..
+		stapp02 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x 2 root root 4.0K Jan  8 14:05 .
+		drwxr-xr-x 1 root root 4.0K Jan  8 14:05 ..
+		stapp01 | CHANGED | rc=0 >>
+		total 8.0K
+		drwxr-xr-x 2 root root 4.0K Jan  8 14:05 .
+		drwxr-xr-x 1 root root 4.0K Jan  8 14:05 ..
+
+3. Create Playbook.yml to copy mentioned file 
+
+thor@jump_host ~/ansible$ vi playbook.yml
+
+thor@jump_host ~/ansible$ cat playbook.yml
+		- name: Ansible copy
+
+		  hosts: all
+
+		  become: yes
+
+		  tasks:
+
+		    - name: copy index.html to sysops folder
+
+		      copy: src=/usr/src/devops/index.html dest=/opt/devops
+
+4. Run the playbook
+
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml 
+
+		PLAY [Ansible copy] *************************************************************************************************************************
+
+		TASK [Gathering Facts] **********************************************************************************************************************
+		ok: [stapp03]
+		ok: [stapp01]
+		ok: [stapp02]
+
+		TASK [copy index.html to sysops folder] *****************************************************************************************************
+		changed: [stapp02]
+		changed: [stapp03]
+		changed: [stapp01]
+
+		PLAY RECAP **********************************************************************************************************************************
+		stapp01                    : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+		stapp02                    : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+		stapp03                    : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+5. Validate the task by checking destination folder on each server by ansible
+
+thor@jump_host ~/ansible$ ansible -i inventory all -a "ls -ahl /opt/devops"
+		stapp02 | CHANGED | rc=0 >>
+		total 12K
+		drwxr-xr-x 2 root root 4.0K Jan  8 14:08 .
+		drwxr-xr-x 1 root root 4.0K Jan  8 14:05 ..
+		-rw-r--r-- 1 root root   35 Jan  8 14:08 index.html
+		stapp03 | CHANGED | rc=0 >>
+		total 12K
+		drwxr-xr-x 2 root root 4.0K Jan  8 14:08 .
+		drwxr-xr-x 1 root root 4.0K Jan  8 14:05 ..
+		-rw-r--r-- 1 root root   35 Jan  8 14:08 index.html
+		stapp01 | CHANGED | rc=0 >>
+		total 12K
+		drwxr-xr-x 2 root root 4.0K Jan  8 14:08 .
+		drwxr-xr-x 1 root root 4.0K Jan  8 14:05 ..
+		-rw-r--r-- 1 root root   35 Jan  8 14:08 index.html
+
+thor@jump_host ~/ansible$
 
 ---------------------------------------------------------------------------------------------------------------------------------
 Task 133:
