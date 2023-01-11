@@ -7367,7 +7367,135 @@ thor@jump_host ~/ansible$ ansible -i inventory all -a "ls -ahl /opt/itadmin/"
 thor@jump_host ~/ansible$
 
 ---------------------------------------------------------------------------------------------------------------------------------
-Task 134:
+Task 134: 11/Jan/2023
+
+Persistent Volumes in Kubernetes HTTPD (Task Repeated)
+
+The Nautilus DevOps team is working on a Kubernetes template to deploy a web application on the cluster. There are some requirements to create/use persistent volumes to store the application code, and the template needs to be designed accordingly. Please find more details below:
+
+    Create a PersistentVolume named as pv-xfusion. Configure the spec as storage class should be manual, set capacity to 5Gi, set access mode to ReadWriteOnce, volume type should be hostPath and set path to /mnt/finance (this directory is already created, you might not be able to access it directly, so you need not to worry about it).
+
+    Create a PersistentVolumeClaim named as pvc-xfusion. Configure the spec as storage class should be manual, request 1Gi of the storage, set access mode to ReadWriteOnce.
+
+    Create a pod named as pod-xfusion, mount the persistent volume you created with claim name pvc-xfusion at document root of the web server, the container within the pod should be named as container-xfusion using image httpd with latest tag only (remember to mention the tag i.e httpd:latest).
+
+    Create a node port type service named web-xfusion using node port 30008 to expose the web server running within the pod.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+1. Check kubectl utility for currently running services and pods
+
+thor@jump_host ~$ kubectl get all
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   36m
+
+thor@jump_host ~$ kubectl get pv
+		No resources found
+
+thor@jump_host ~$ kubectl get pvc
+		No resources found in default namespace.
+
+2. Create YAML file as per requirements 
+
+thor@jump_host ~$ vi /tmp/pvc_httpd.yml
+
+thor@jump_host ~$ cat /tmp/pvc_httpd.yml
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-xfusion
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  hostPath:
+    path: /mnt/finance
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-xfusion
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-xfusion
+  labels:
+     app: httpd
+spec:
+  volumes:
+    - name: storage-datacenter
+      persistentVolumeClaim:
+        claimName: pvc-xfusion
+  containers:
+    - name: container-xfusion
+      image: httpd:latest
+      ports:
+        - containerPort: 80
+      volumeMounts:
+        - name: storage-datacenter
+          mountPath:  /usr/local/apache2/htdocs/
+---                                                                                                           
+apiVersion: v1                                                                                                
+kind: Service                                                                                                 
+metadata:                                                                                                     
+  name: web-xfusion                                                                                         
+spec:                                                                                                         
+   type: NodePort                                                                                             
+   selector:                                                                                                  
+     app: httpd                                                                                     
+   ports:                                                                                                     
+     - port: 80                                                                                               
+       targetPort: 80                                                                                         
+       nodePort: 30008
+ 
+3. Create the deployment , pods and persistent volumes
+
+thor@jump_host ~$ kubectl create -f /tmp/pvc_httpd.yml 
+		persistentvolume/pv-xfusion created
+		persistentvolumeclaim/pvc-xfusion created
+		pod/pod-xfusion created
+		service/web-xfusion created
+
+4. Wait for pods and services to running status
+
+thor@jump_host ~$ kubectl get all
+		NAME              READY   STATUS    RESTARTS   AGE
+		pod/pod-xfusion   1/1     Running   0          16s
+
+		NAME                  TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+		service/kubernetes    ClusterIP   10.96.0.1      <none>        443/TCP        38m
+		service/web-xfusion   NodePort    10.96.61.213   <none>        80:30008/TCP   16s
+
+thor@jump_host ~$ kubectl get all
+		NAME              READY   STATUS    RESTARTS   AGE
+		pod/pod-xfusion   1/1     Running   0          21s
+
+		NAME                  TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+		service/kubernetes    ClusterIP   10.96.0.1      <none>        443/TCP        38m
+		service/web-xfusion   NodePort    10.96.61.213   <none>        80:30008/TCP   21s
+
+5. Validate Psersistent Volume Claim and Peristent volume 
+
+thor@jump_host ~$ kubectl get pvc
+		NAME          STATUS   VOLUME       CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+		pvc-xfusion   Bound    pv-xfusion   5Gi        RWO            manual         31s
+
+thor@jump_host ~$ kubectl get pv
+		NAME         CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                 STORAGECLASS   REASON   AGE
+		pv-xfusion   5Gi        RWO            Retain           Bound    default/pvc-xfusion   manual                  34s
+
+6. Validate task by View Website on right top corner
 
 ---------------------------------------------------------------------------------------------------------------------------------
 Task 135:
