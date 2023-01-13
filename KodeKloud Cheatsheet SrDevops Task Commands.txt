@@ -7498,7 +7498,115 @@ thor@jump_host ~$ kubectl get pv
 6. Validate task by View Website on right top corner
 
 ---------------------------------------------------------------------------------------------------------------------------------
-Task 135:
+Task 135: 13/Jan/2023
+
+Deploy Apache Web Server on Kubernetes CLuster
+
+There is an application that needs to be deployed on Kubernetes cluster under Apache web server. The Nautilus application development team has asked the DevOps team to deploy it. We need to develop a template as per requirements mentioned below:
+
+    Create a namespace named as httpd-namespace-devops.
+
+    Create a deployment named as httpd-deployment-devops under newly created namespace. For the deployment use httpd image with latest tag only and remember to mention the tag i.e httpd:latest, and make sure replica counts are 2.
+
+    Create a service named as httpd-service-devops under same namespace to expose the deployment, nodePort should be 30004.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+1. Check current kubernetes namespace
+
+thor@jump_host ~$ kubectl get namespace
+		NAME                 STATUS   AGE
+		default              Active   81m
+		kube-node-lease      Active   81m
+		kube-public          Active   81m
+		kube-system          Active   81m
+		local-path-storage   Active   81m
+
+2. Create required namespace
+
+thor@jump_host ~$ kubectl create namespace httpd-namespace-devops
+		namespace/httpd-namespace-devops created
+
+thor@jump_host ~$ kubectl get namespace
+		NAME                     STATUS   AGE
+		default                  Active   82m
+		httpd-namespace-devops   Active   18s
+		kube-node-lease          Active   82m
+		kube-public              Active   82m
+		kube-system              Active   82m
+		local-path-storage       Active   82m
+
+3. Check running pods and services for newly created namespace
+
+thor@jump_host ~$ kubectl get pods -n  httpd-namespace-devops
+		No resources found in httpd-namespace-devops namespace.
+
+thor@jump_host ~$ kubectl get service -n  httpd-namespace-devops
+		No resources found in httpd-namespace-devops namespace.
+
+4. Create YAML file as pre requirement with configuration for deployment, service and pods
+
+thor@jump_host ~$ vi /tmp/httpd.yaml
+
+thor@jump_host ~$ cat /tmp/httpd.yaml
+		---
+		apiVersion: v1
+		kind: Service
+		metadata:
+		  name: httpd-service-devops
+		  namespace: httpd-namespace-devops
+		spec:
+		  type: NodePort
+		  selector:
+		    app: httpd_app_devops
+		  ports:
+		    - port: 80
+		      targetPort: 80
+		      nodePort: 30004
+		---
+		apiVersion: apps/v1
+		kind: Deployment
+		metadata:
+		  name: httpd-deployment-devops
+		  namespace: httpd-namespace-devops
+		  labels:
+		    app: httpd_app_devops
+		spec:
+		  replicas: 2
+		  selector:
+		    matchLabels:
+		      app: httpd_app_devops
+		  template:
+		    metadata:
+		      labels:
+		        app: httpd_app_devops
+		    spec:
+		      containers:
+		        - name: httpd-container-devops
+		          image: httpd:latest
+		          ports:
+		            - containerPort: 80
+
+5. Run the YAML file configuration
+
+thor@jump_host ~$ kubectl create -f /tmp/httpd.yaml
+		service/httpd-service-devops created
+		deployment.apps/httpd-deployment-devops created
+
+6. Verify service, deployment and pods created and wait for them to get to running status 
+
+thor@jump_host ~$ kubectl get service -n  httpd-namespace-devops
+		NAME                   TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
+		httpd-service-devops   NodePort   10.96.58.40   <none>        80:30004/TCP   5s
+
+thor@jump_host ~$ kubectl get pods -n  httpd-namespace-devops
+		NAME                                      READY   STATUS    RESTARTS   AGE
+		httpd-deployment-devops-867b499f4-99kpp   1/1     Running   0          13s
+		httpd-deployment-devops-867b499f4-dgnfz   1/1     Running   0          13s
+thor@jump_host ~$
+
+7. Validate the task by checking website on top right corner
 
 ---------------------------------------------------------------------------------------------------------------------------------
 Task 136:
