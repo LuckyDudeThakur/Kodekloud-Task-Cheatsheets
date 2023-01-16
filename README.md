@@ -143,3 +143,4 @@ Task 133: 10/Jan/2023 : Ansible Unarchive Module
 Task 134: 11/Jan/2023 : Persistent Volumes in Kubernetes HTTPD (Task Repeated)  
 Task 135: 13/Jan/2023 : Deploy Apache Web Server on Kubernetes CLuster (Task repeated)  
 Task 136: 14/Jan/2023 : Puppet Multi-Packages Installation (Task Repeated)  
+Task 137: 16/Jan/2023 : Puppet Setup SSH Keys (Task Repeated)  
